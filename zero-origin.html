@@ -1,0 +1,1920 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Zero Origin — Investigation Board</title>
+<style>
+  :root{
+    --bg-deep:#08090b;
+    --bg-panel:#0d0f12;
+    --bg-panel-2:#121418;
+    --bg-card:#15181d;
+    --bg-card-hover:#1b1f26;
+    --border:#262b33;
+    --border-soft:#1c2028;
+    --text-primary:#e8ecf2;
+    --text-muted:#8b93a3;
+    --text-dim:#5a6272;
+    --accent-red:#3d7dca;
+    --accent-amber:#4f9bef;
+    --accent-thread:#3d7dca;
+    --pin-shadow:0 1px 2px rgba(0,0,0,.7);
+    --radius-card:2px;
+    --mono: ui-monospace, "SF Mono", "Cascadia Mono", Menlo, Consolas, monospace;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, sans-serif;
+    --thread-red:#c1442e;
+    --thread-blue:#4f9bef;
+    --thread-green:#4c9a6a;
+    --thread-yellow:#d4b23c;
+    --thread-purple:#9463c4;
+    --thread-orange:#d97a3a;
+    --thread-black:#5a6272;
+  }
+  /* corner-bracket frame accent, dossier-cover motif */
+  .bracket-corner{position:absolute;width:14px;height:14px;border-color:var(--accent-amber);opacity:.55;pointer-events:none;}
+  .bracket-corner.tl{top:6px;left:6px;border-top:1.5px solid;border-left:1.5px solid;}
+  .bracket-corner.br{bottom:6px;right:6px;border-bottom:1.5px solid;border-right:1.5px solid;}
+  *{box-sizing:border-box;}
+  html,body{height:100%;margin:0;background:var(--bg-deep);color:var(--text-primary);font-family:var(--sans);overflow:hidden;-webkit-font-smoothing:antialiased;}
+  ::selection{background:rgba(193,68,46,.35);}
+  button{font-family:inherit;}
+  input,select,textarea{font-family:inherit;color:var(--text-primary);}
+  ::-webkit-scrollbar{width:8px;height:8px;}
+  ::-webkit-scrollbar-track{background:transparent;}
+  ::-webkit-scrollbar-thumb{background:#3a332c;border-radius:4px;}
+  ::-webkit-scrollbar-thumb:hover{background:#4a4238;}
+
+  #app{
+    display:grid;
+    grid-template-rows:52px 1fr;
+    height:100vh;width:100vw;
+  }
+
+  /* ===================== TOOLBAR ===================== */
+  #toolbar{
+    display:flex;align-items:center;gap:14px;
+    background:linear-gradient(180deg,#101216,#0a0b0d);
+    border-bottom:1px solid var(--border);
+    padding:0 14px;
+    z-index:50;
+    user-select:none;
+    position:relative;
+  }
+  .brand{
+    font-family:var(--mono);font-weight:700;letter-spacing:.14em;font-size:13px;
+    color:var(--text-primary);white-space:nowrap;display:flex;align-items:center;gap:8px;
+  }
+  .brand .dot{width:8px;height:8px;border-radius:50%;background:var(--accent-red);box-shadow:0 0 8px var(--accent-red);}
+  .tb-sep{width:1px;align-self:stretch;background:var(--border);margin:10px 2px;}
+  .tb-group{display:flex;align-items:center;gap:4px;}
+  .tb-btn{
+    display:flex;align-items:center;gap:6px;
+    background:transparent;border:1px solid transparent;color:var(--text-muted);
+    padding:7px 10px;border-radius:4px;cursor:pointer;font-size:12.5px;transition:background .12s,color .12s,border-color .12s;
+    white-space:nowrap;
+  }
+  .tb-btn:hover{background:var(--bg-card-hover);color:var(--text-primary);}
+  .tb-btn:active{transform:translateY(1px);}
+  .tb-btn.active{background:rgba(193,68,46,.15);color:var(--accent-red);border-color:rgba(193,68,46,.35);}
+  .tb-btn:disabled{opacity:.35;cursor:not-allowed;}
+  .tb-btn:disabled:hover{background:transparent;color:var(--text-muted);}
+  .icon{width:15px;height:15px;flex:none;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;}
+
+  #search-wrap{
+    flex:1;max-width:420px;position:relative;display:flex;align-items:center;
+  }
+  #search-wrap .icon{position:absolute;left:10px;color:var(--text-dim);}
+  #search{
+    width:100%;background:var(--bg-panel-2);border:1px solid var(--border-soft);
+    border-radius:5px;padding:7px 10px 7px 32px;font-size:12.5px;outline:none;color:var(--text-primary);
+  }
+  #search::placeholder{color:var(--text-dim);}
+  #search:focus{border-color:rgba(193,68,46,.5);}
+  #search-count{position:absolute;right:8px;font-size:10.5px;color:var(--text-dim);font-family:var(--mono);}
+
+  .zoom-group{display:flex;align-items:center;gap:2px;background:var(--bg-panel-2);border:1px solid var(--border-soft);border-radius:5px;padding:2px;}
+  .zoom-group .tb-btn{padding:5px 8px;}
+  #zoom-label{font-family:var(--mono);font-size:11px;color:var(--text-muted);min-width:42px;text-align:center;}
+
+  #save-indicator{font-family:var(--mono);font-size:10.5px;color:var(--text-dim);display:flex;align-items:center;gap:5px;min-width:70px;transition:opacity .3s;white-space:nowrap;}
+  #save-indicator .sdot{width:6px;height:6px;border-radius:50%;background:var(--accent-amber);}
+  #save-indicator.saved .sdot{background:#4c9a6a;}
+
+  /* ===================== BODY LAYOUT ===================== */
+  #body{display:grid;grid-template-columns:auto 1fr auto;min-height:0;}
+
+  /* ===================== LEFT SIDEBAR ===================== */
+  #sidebar{
+    width:230px;background:var(--bg-panel);border-right:1px solid var(--border);
+    display:flex;flex-direction:column;min-height:0;
+  }
+  #sidebar.collapsed{width:0;overflow:hidden;border-right:none;}
+  #sidebar-tabs{display:flex;border-bottom:1px solid var(--border);}
+  .stab{
+    flex:1;padding:10px 4px;background:transparent;border:none;color:var(--text-dim);cursor:pointer;
+    display:flex;flex-direction:column;align-items:center;gap:4px;font-size:9.5px;letter-spacing:.06em;
+    border-bottom:2px solid transparent;
+  }
+  .stab .icon{width:15px;height:15px;}
+  .stab:hover{color:var(--text-muted);}
+  .stab.active{color:var(--accent-amber);border-bottom-color:var(--accent-amber);}
+  #sidebar-content{flex:1;overflow-y:auto;padding:12px;}
+  .sb-section-title{font-family:var(--mono);font-size:10px;letter-spacing:.1em;color:var(--text-dim);text-transform:uppercase;margin:14px 0 8px;}
+  .sb-section-title:first-child{margin-top:0;}
+
+  .type-btn{
+    display:flex;align-items:center;gap:9px;width:100%;background:var(--bg-card);border:1px solid var(--border-soft);
+    color:var(--text-primary);padding:8px 10px;border-radius:4px;cursor:pointer;margin-bottom:6px;font-size:12px;text-align:left;
+    transition:border-color .12s,background .12s;
+  }
+  .type-btn:hover{background:var(--bg-card-hover);border-color:var(--border);}
+  .type-swatch{width:9px;height:9px;border-radius:50%;flex:none;}
+
+  .thread-colors{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:4px;}
+  .thread-swatch{width:22px;height:22px;border-radius:50%;cursor:pointer;border:2px solid transparent;transition:transform .1s,border-color .1s;}
+  .thread-swatch:hover{transform:scale(1.1);}
+  .thread-swatch.active{border-color:#fff;}
+
+  .hint{font-size:11px;color:var(--text-dim);line-height:1.5;padding:8px 2px;}
+
+  .layer-row{
+    display:flex;align-items:center;gap:7px;padding:6px 7px;border-radius:4px;cursor:pointer;font-size:12px;margin-bottom:2px;
+  }
+  .layer-row:hover{background:var(--bg-card);}
+  .layer-row.selected{background:rgba(212,162,76,.13);}
+  .layer-row .type-swatch{flex:none;}
+  .layer-row .lname{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--text-primary);}
+  .layer-row .licon{background:none;border:none;color:var(--text-dim);cursor:pointer;padding:2px;display:flex;}
+  .layer-row .licon:hover{color:var(--text-primary);}
+  .layer-row .licon .icon{width:13px;height:13px;}
+
+  .tl-row{display:flex;gap:10px;padding:8px 4px;border-left:2px solid var(--border);margin-left:5px;cursor:pointer;position:relative;}
+  .tl-row:hover .tl-title{color:var(--accent-amber);}
+  .tl-row::before{content:'';position:absolute;left:-5px;top:12px;width:8px;height:8px;border-radius:50%;background:var(--accent-amber);}
+  .tl-date{font-family:var(--mono);font-size:10px;color:var(--text-dim);white-space:nowrap;padding-top:1px;}
+  .tl-title{font-size:12px;color:var(--text-primary);transition:color .12s;}
+
+  .case-row{padding:9px 10px;border-radius:4px;cursor:pointer;margin-bottom:6px;border:1px solid var(--border-soft);background:var(--bg-card);}
+  .case-row:hover{border-color:var(--border);}
+  .case-row.active{border-color:var(--accent-amber);background:rgba(212,162,76,.08);}
+  .case-row .crow-top{display:flex;align-items:center;gap:7px;}
+  .case-row .cdot{width:9px;height:9px;border-radius:50%;flex:none;}
+  .case-row .cname{font-size:12.5px;color:var(--text-primary);flex:1;}
+  .case-row .ccount{font-family:var(--mono);font-size:10px;color:var(--text-dim);}
+
+  .sb-btn-full{
+    width:100%;background:var(--bg-card);border:1px dashed var(--border);color:var(--text-muted);
+    padding:8px;border-radius:4px;cursor:pointer;font-size:11.5px;display:flex;align-items:center;justify-content:center;gap:6px;
+  }
+  .sb-btn-full:hover{border-color:var(--accent-amber);color:var(--accent-amber);}
+
+  /* ===================== CANVAS ===================== */
+  #canvas-wrap{position:relative;overflow:hidden;background:var(--bg-deep);min-width:0;}
+  #canvas-wrap.pannable{cursor:grab;}
+  #canvas-wrap.panning{cursor:grabbing;}
+  #canvas-wrap.connecting{cursor:crosshair;}
+  #corkboard{
+    position:absolute;inset:0;
+    background-image:
+      radial-gradient(circle at 1px 1px, rgba(255,255,255,0.035) 1px, transparent 0);
+    background-size:26px 26px;
+    background-color:var(--bg-deep);
+  }
+  #world{position:absolute;left:0;top:0;transform-origin:0 0;}
+  #world.interacting{will-change:transform;}
+  #conn-svg{position:absolute;left:0;top:0;width:1px;height:1px;overflow:visible;pointer-events:none;transform-origin:0 0;}
+  #conn-svg.interacting{will-change:transform;}
+  #conn-svg path{cursor:pointer;pointer-events:stroke;}
+  #conn-svg .conn-hit{pointer-events:stroke;}
+
+  .card{
+    position:absolute;background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-card);
+    box-shadow:0 3px 10px rgba(0,0,0,.45), 0 1px 0 rgba(255,255,255,.02) inset;
+    display:flex;flex-direction:column;overflow:hidden;user-select:none;
+    transition:box-shadow .15s, border-color .15s, opacity .15s;
+  }
+  .card:hover{border-color:#4a4238;}
+  .card.selected{border-color:var(--accent-amber);box-shadow:0 0 0 1px var(--accent-amber),0 6px 18px rgba(0,0,0,.5);}
+  .card.dimmed{opacity:.22;}
+  .card.match{box-shadow:0 0 0 2px var(--accent-red),0 6px 18px rgba(0,0,0,.5);}
+  .card.hidden-layer{display:none;}
+  .card .pin{
+    position:absolute;top:-6px;left:50%;transform:translateX(-50%);width:11px;height:11px;border-radius:50%;
+    box-shadow:var(--pin-shadow);z-index:3;border:1.5px solid rgba(0,0,0,.35);
+  }
+  .card-head{display:flex;align-items:flex-start;gap:7px;padding:9px 10px 6px;cursor:grab;}
+  .card-head:active{cursor:grabbing;}
+  .card-thumb{width:34px;height:34px;border-radius:3px;object-fit:cover;flex:none;border:1px solid var(--border-soft);background:#000;}
+  .card-thumb-placeholder{width:34px;height:34px;border-radius:3px;flex:none;border:1px solid var(--border-soft);display:flex;align-items:center;justify-content:center;background:var(--bg-panel-2);color:var(--text-dim);}
+  .card-titles{flex:1;min-width:0;}
+  .card-title{font-size:13px;font-weight:600;color:var(--text-primary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.3;}
+  .card-type{font-family:var(--mono);font-size:9px;letter-spacing:.08em;text-transform:uppercase;color:var(--text-dim);margin-top:2px;}
+  .card-body{padding:0 10px 8px;flex:1;overflow:hidden;}
+  .card-notes{font-size:11px;color:var(--text-muted);line-height:1.45;overflow:hidden;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;}
+  .card-foot{display:flex;align-items:center;justify-content:space-between;padding:5px 10px;border-top:1px solid var(--border-soft);background:rgba(0,0,0,.12);}
+  .card-case-tag{font-family:var(--mono);font-size:9px;color:var(--text-dim);display:flex;align-items:center;gap:4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .card-case-tag .cdot{width:6px;height:6px;border-radius:50%;flex:none;}
+  .card-field-count{font-family:var(--mono);font-size:9px;color:var(--text-dim);}
+  .resize-handle{position:absolute;right:0;bottom:0;width:16px;height:16px;cursor:nwse-resize;z-index:4;}
+  .resize-handle::after{content:'';position:absolute;right:3px;bottom:3px;width:7px;height:7px;border-right:2px solid var(--text-dim);border-bottom:2px solid var(--text-dim);opacity:.5;}
+  .connect-port{position:absolute;width:11px;height:11px;border-radius:50%;background:var(--accent-red);border:2px solid var(--bg-deep);top:50%;transform:translateY(-50%);cursor:crosshair;z-index:5;opacity:0;transition:opacity .12s;}
+  .card:hover .connect-port, .card.connect-source .connect-port{opacity:1;}
+  .connect-port.left{left:-6px;}
+  .connect-port.right{right:-6px;}
+  .card.connect-source{box-shadow:0 0 0 2px var(--accent-red),0 6px 18px rgba(0,0,0,.5);}
+
+  #zoom-pct-floating{position:absolute;left:14px;bottom:12px;font-family:var(--mono);font-size:10.5px;color:var(--text-dim);background:rgba(0,0,0,.35);padding:4px 8px;border-radius:4px;pointer-events:none;}
+  #minimap-hint{position:absolute;right:14px;bottom:12px;font-family:var(--mono);font-size:10px;color:var(--text-dim);background:rgba(0,0,0,.35);padding:4px 8px;border-radius:4px;pointer-events:none;}
+
+  #empty-hint{
+    position:absolute;inset:0;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:10px;
+    color:var(--text-dim);pointer-events:none;
+  }
+  #empty-hint .icon{width:40px;height:40px;opacity:.35;}
+  #empty-hint span{font-size:13px;}
+  #empty-hint b{color:var(--text-muted);}
+
+  /* ===================== RIGHT PANEL ===================== */
+  #props{
+    width:300px;background:var(--bg-panel);border-left:1px solid var(--border);
+    display:flex;flex-direction:column;min-height:0;
+  }
+  #props.collapsed{width:0;overflow:hidden;border-left:none;}
+  #props-head{padding:12px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
+  #props-head h3{margin:0;font-size:11.5px;font-family:var(--mono);letter-spacing:.08em;color:var(--text-muted);text-transform:uppercase;}
+  #props-body{flex:1;overflow-y:auto;padding:14px;}
+  #props-empty{color:var(--text-dim);font-size:12px;text-align:center;padding:40px 10px;line-height:1.6;}
+
+  .pf-label{font-size:10px;font-family:var(--mono);letter-spacing:.06em;color:var(--text-dim);text-transform:uppercase;margin-bottom:5px;display:block;}
+  .pf-group{margin-bottom:16px;}
+  .pf-input, .pf-select, .pf-textarea{
+    width:100%;background:var(--bg-panel-2);border:1px solid var(--border-soft);border-radius:4px;
+    padding:7px 9px;font-size:12.5px;color:var(--text-primary);outline:none;
+  }
+  .pf-input:focus,.pf-select:focus,.pf-textarea:focus{border-color:rgba(212,162,76,.5);}
+  .pf-textarea{resize:vertical;min-height:64px;line-height:1.5;}
+  .pf-row{display:flex;gap:8px;}
+  .pf-row > *{flex:1;}
+
+  .color-row{display:flex;flex-wrap:wrap;gap:7px;}
+  .color-dot{width:22px;height:22px;border-radius:50%;cursor:pointer;border:2px solid transparent;}
+  .color-dot.active{border-color:#fff;}
+
+  .thumb-row{display:flex;align-items:center;gap:10px;}
+  .thumb-preview{width:52px;height:52px;border-radius:4px;object-fit:cover;border:1px solid var(--border-soft);background:var(--bg-panel-2);cursor:zoom-in;}
+  .thumb-preview-empty{width:52px;height:52px;border-radius:4px;border:1px dashed var(--border);background:var(--bg-panel-2);display:flex;align-items:center;justify-content:center;color:var(--text-dim);}
+  .btn-sm{background:var(--bg-card);border:1px solid var(--border-soft);color:var(--text-muted);padding:6px 10px;border-radius:4px;cursor:pointer;font-size:11px;}
+  .btn-sm:hover{border-color:var(--border);color:var(--text-primary);}
+  .btn-danger{color:#d97a6a;}
+  .btn-danger:hover{border-color:#c1442e;color:#e0685a;}
+
+  .field-row{border:1px solid var(--border-soft);border-radius:4px;padding:8px;margin-bottom:8px;background:var(--bg-panel-2);}
+  .field-row-top{display:flex;gap:6px;margin-bottom:6px;}
+  .field-row-top .pf-input{font-size:11.5px;padding:5px 7px;}
+  .field-del{background:none;border:none;color:var(--text-dim);cursor:pointer;padding:2px 4px;}
+  .field-del:hover{color:#e0685a;}
+  .field-type-tag{font-family:var(--mono);font-size:8.5px;text-transform:uppercase;color:var(--text-dim);padding:5px 6px;border:1px solid var(--border-soft);border-radius:4px;white-space:nowrap;}
+  .check-row{display:flex;align-items:center;gap:8px;padding:6px 0;}
+  .check-row input{width:15px;height:15px;accent-color:var(--accent-amber);}
+
+  .add-field-menu{display:flex;flex-wrap:wrap;gap:5px;margin-top:8px;}
+  .aft-btn{background:var(--bg-card);border:1px solid var(--border-soft);color:var(--text-muted);font-size:10px;padding:5px 8px;border-radius:4px;cursor:pointer;}
+  .aft-btn:hover{color:var(--text-primary);border-color:var(--border);}
+
+  .attach-row{display:flex;align-items:center;gap:8px;padding:6px 7px;background:var(--bg-panel-2);border:1px solid var(--border-soft);border-radius:4px;margin-bottom:6px;}
+  .attach-name{flex:1;font-size:11px;color:var(--text-primary);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .attach-size{font-family:var(--mono);font-size:9.5px;color:var(--text-dim);}
+
+  .conn-list-item{display:flex;align-items:center;gap:7px;padding:6px 7px;border-radius:4px;font-size:11.5px;margin-bottom:4px;background:var(--bg-panel-2);}
+  .conn-list-item .cdd{width:8px;height:8px;border-radius:50%;flex:none;}
+  .conn-list-item span{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--text-muted);}
+
+  /* ===================== MODALS / MENUS ===================== */
+  .menu-popover{
+    position:fixed;background:var(--bg-panel-2);border:1px solid var(--border);border-radius:6px;
+    box-shadow:0 10px 30px rgba(0,0,0,.5);padding:6px;z-index:200;min-width:190px;
+  }
+  .menu-item{display:flex;align-items:center;gap:9px;padding:8px 10px;border-radius:4px;cursor:pointer;font-size:12.5px;color:var(--text-primary);}
+  .menu-item:hover{background:var(--bg-card-hover);}
+  .menu-item .type-swatch{flex:none;}
+
+  .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:300;display:flex;align-items:center;justify-content:center;}
+  .modal-box{background:var(--bg-panel);border:1px solid var(--border);border-radius:8px;width:360px;max-width:90vw;box-shadow:0 20px 50px rgba(0,0,0,.6);}
+  .modal-head{padding:14px 16px;border-bottom:1px solid var(--border);font-size:13px;font-weight:600;display:flex;justify-content:space-between;align-items:center;}
+  .modal-body{padding:16px;}
+  .modal-foot{padding:12px 16px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:8px;}
+  .btn-primary{background:var(--accent-red);border:1px solid var(--accent-red);color:#fff;padding:7px 14px;border-radius:4px;cursor:pointer;font-size:12px;font-weight:600;}
+  .btn-primary:hover{background:#2f66a8;}
+  .save-card-row{position:sticky;top:0;z-index:2;background:var(--bg-panel);margin:-14px -14px 12px;padding:10px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;}
+  .save-card-row .btn-primary{flex:1;display:flex;align-items:center;justify-content:center;gap:6px;}
+  .save-card-row .save-hint{font-family:var(--mono);font-size:9.5px;color:var(--text-dim);white-space:nowrap;}
+  .btn-ghost{background:transparent;border:1px solid var(--border-soft);color:var(--text-muted);padding:7px 14px;border-radius:4px;cursor:pointer;font-size:12px;}
+  .btn-ghost:hover{color:var(--text-primary);border-color:var(--border);}
+  .close-x{background:none;border:none;color:var(--text-dim);cursor:pointer;padding:2px;}
+
+  #toast{
+    position:fixed;bottom:18px;left:50%;transform:translateX(-50%) translateY(12px);background:var(--bg-panel-2);border:1px solid var(--border);
+    padding:9px 16px;border-radius:6px;font-size:12px;color:var(--text-primary);z-index:500;opacity:0;pointer-events:none;
+    transition:opacity .2s, transform .2s;box-shadow:0 8px 20px rgba(0,0,0,.5);
+  }
+  #toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+  /* ===================== PHOTO LIGHTBOX ===================== */
+  #lightbox{
+    position:fixed;inset:0;background:rgba(4,5,7,.92);z-index:800;
+    display:none;align-items:center;justify-content:center;padding:40px;
+    cursor:zoom-out;
+  }
+  #lightbox.show{display:flex;}
+  #lightbox-img{max-width:100%;max-height:100%;border-radius:4px;box-shadow:0 20px 60px rgba(0,0,0,.6);cursor:default;object-fit:contain;}
+  #lightbox-close{
+    position:absolute;top:18px;right:20px;background:var(--bg-panel-2);border:1px solid var(--border);color:var(--text-primary);
+    width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;
+  }
+  #lightbox-close:hover{border-color:var(--accent-amber);color:var(--accent-amber);}
+  .card-thumb{cursor:zoom-in;}
+
+  @media print{
+    #toolbar,#sidebar,#props,#empty-hint,#zoom-pct-floating,#minimap-hint,#toast,#lightbox{display:none !important;}
+    #canvas-wrap{overflow:visible !important;}
+    body,#app,#body{background:#fff !important;}
+  }
+</style>
+</head>
+<body>
+<div id="app">
+
+  <!-- ===================== TOOLBAR ===================== -->
+  <div id="toolbar">
+    <span class="bracket-corner tl"></span>
+    <span class="bracket-corner br" style="right:auto;left:calc(100% - 20px);"></span>
+    <div class="brand"><span class="dot"></span>ZERO ORIGIN</div>
+    <div class="tb-sep"></div>
+    <div class="tb-group">
+      <button class="tb-btn" id="btn-newcard" title="New card">
+        <svg class="icon" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg> New Card
+      </button>
+      <button class="tb-btn" id="btn-undo" title="Undo (Ctrl+Z)">
+        <svg class="icon" viewBox="0 0 24 24"><path d="M3 7v6h6"/><path d="M3 13a9 9 0 1 0 3-6.7L3 9"/></svg>
+      </button>
+      <button class="tb-btn" id="btn-redo" title="Redo (Ctrl+Shift+Z)">
+        <svg class="icon" viewBox="0 0 24 24"><path d="M21 7v6h-6"/><path d="M21 13a9 9 0 1 1-3-6.7L21 9"/></svg>
+      </button>
+    </div>
+    <div class="tb-sep"></div>
+    <div id="search-wrap">
+      <svg class="icon" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+      <input id="search" placeholder="Search cards, fields, notes…" autocomplete="off">
+      <span id="search-count"></span>
+    </div>
+    <div style="flex:1"></div>
+    <div id="save-indicator"><span class="sdot"></span><span id="save-text">All changes saved</span></div>
+    <div class="tb-sep"></div>
+    <div class="zoom-group">
+      <button class="tb-btn" id="btn-zoom-out" title="Zoom out">
+        <svg class="icon" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/><path d="M8 11h6"/></svg>
+      </button>
+      <span id="zoom-label">100%</span>
+      <button class="tb-btn" id="btn-zoom-in" title="Zoom in">
+        <svg class="icon" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/><path d="M11 8v6M8 11h6"/></svg>
+      </button>
+      <button class="tb-btn" id="btn-zoom-fit" title="Fit to screen">
+        <svg class="icon" viewBox="0 0 24 24"><path d="M8 3H5a2 2 0 0 0-2 2v3M16 3h3a2 2 0 0 1 2 2v3M8 21H5a2 2 0 0 1-2-2v-3M16 21h3a2 2 0 0 0 2-2v-3"/></svg>
+      </button>
+    </div>
+    <div class="tb-sep"></div>
+    <div class="tb-group">
+      <button class="tb-btn" id="btn-import" title="Import a case (.zorigin.json)">
+        <svg class="icon" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M17 8l-5-5-5 5"/><path d="M12 3v12"/></svg> Import
+      </button>
+      <button class="tb-btn" id="btn-export" title="Export">
+        <svg class="icon" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5"/><path d="M12 15V3"/></svg> Export
+      </button>
+      <button class="tb-btn" id="btn-settings" title="Settings">
+        <svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- ===================== BODY ===================== -->
+  <div id="body">
+
+    <!-- LEFT SIDEBAR -->
+    <div id="sidebar">
+      <div id="sidebar-tabs">
+        <button class="stab active" data-tab="tools"><svg class="icon" viewBox="0 0 24 24"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>Tools</button>
+        <button class="stab" data-tab="layers"><svg class="icon" viewBox="0 0 24 24"><path d="m12 2 9 5-9 5-9-5 9-5Z"/><path d="m3 12 9 5 9-5"/><path d="m3 17 9 5 9-5"/></svg>Layers</button>
+        <button class="stab" data-tab="timeline"><svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>Timeline</button>
+        <button class="stab" data-tab="cases"><svg class="icon" viewBox="0 0 24 24"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7Z"/></svg>Cases</button>
+      </div>
+      <div id="sidebar-content"></div>
+    </div>
+
+    <!-- CENTER CANVAS -->
+    <div id="canvas-wrap" class="pannable">
+      <div id="corkboard"></div>
+      <svg id="conn-svg"><defs></defs></svg>
+      <div id="world"></div>
+      <div id="empty-hint">
+        <svg class="icon" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+        <span>The board is empty. Press <b>New Card</b> to start the investigation.</span>
+      </div>
+      <div id="zoom-pct-floating">Scroll to zoom · Drag empty space to pan</div>
+      <div id="minimap-hint"></div>
+    </div>
+
+    <!-- RIGHT PROPERTIES PANEL -->
+    <div id="props">
+      <div id="props-head"><h3>Properties</h3><button class="close-x" id="props-close">
+        <svg class="icon" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></svg>
+      </button></div>
+      <div id="props-body"><div id="props-empty">Select a card or thread to view and edit its details here.</div></div>
+    </div>
+
+  </div>
+</div>
+
+<div id="toast"></div>
+<div id="lightbox">
+  <button id="lightbox-close" title="Close (Esc)"><svg class="icon" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+  <img id="lightbox-img" src="" alt="">
+</div>
+<input type="file" id="file-image" accept="image/*" style="display:none">
+<input type="file" id="file-attach" style="display:none">
+<input type="file" id="file-import" accept="application/json" style="display:none">
+
+<script>
+(function(){
+"use strict";
+
+/* =========================================================================
+   ZERO ORIGIN — Investigation Board
+   Architecture (single-file, organized in clean-architecture style layers):
+     1. DOMAIN        — types, constants, id/util helpers
+     2. DATA           — persistence gateway (window.storage) + import/export
+     3. STATE / STORE  — app state, mutations, undo/redo history
+     4. RENDER / UI     — DOM rendering & event wiring (presentation layer)
+   Designed so future modules (AI enrichment, OCR, realtime collab, plugins)
+   can hook into STORE mutations without touching RENDER, and vice versa.
+   ========================================================================= */
+
+/* ============================== 1. DOMAIN ============================== */
+
+const CARD_TYPES = {
+  person:       { label: "Person",       color: "#3d7dca" },
+  evidence:     { label: "Evidence",     color: "#d4a24c" },
+  place:        { label: "Place",        color: "#4c9a6a" },
+  vehicle:      { label: "Vehicle",      color: "#9463c4" },
+  document:     { label: "Document",     color: "#9a8f7f" },
+  organization: { label: "Organization", color: "#c1442e" },
+  custom:       { label: "Custom",       color: "#3aa0a0" },
+};
+
+const THREAD_COLORS = {
+  red:"#c1442e", blue:"#3d7dca", green:"#4c9a6a", yellow:"#d4b23c",
+  purple:"#9463c4", orange:"#d97a3a", black:"#8a8177"
+};
+
+const FIELD_TYPES = ["text","number","date","checkbox","link","richtext","image","file"];
+
+function uid(prefix){ return (prefix||"id") + "_" + Math.random().toString(36).slice(2,9) + Date.now().toString(36).slice(-4); }
+function clamp(v,min,max){ return Math.max(min, Math.min(max, v)); }
+function escapeHtml(s){ return String(s==null?"":s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function fmtBytes(n){ if(n<1024) return n+" B"; if(n<1024*1024) return (n/1024).toFixed(1)+" KB"; return (n/1024/1024).toFixed(1)+" MB"; }
+function nowIso(){ return new Date().toISOString(); }
+
+function newCard(type, x, y){
+  return {
+    id: uid("card"),
+    type: type || "person",
+    title: "New " + (CARD_TYPES[type]||CARD_TYPES.person).label,
+    subtitle: "",
+    x: x, y: y, w: 220, h: 132,
+    color: (CARD_TYPES[type]||CARD_TYPES.person).color,
+    image: null,
+    notes: "",
+    fields: [],
+    attachments: [],
+    caseId: null,
+    visible: true,
+    locked: false,
+    createdAt: nowIso(), updatedAt: nowIso()
+  };
+}
+function newField(type){
+  return { id: uid("f"), type: type||"text", label: "Field", value: type==="checkbox" ? false : "" };
+}
+function newConnection(fromId, toId, color){
+  return { id: uid("conn"), from: fromId, to: toId, color: color||"red", label: "", style: "solid" };
+}
+function newCase(name, color){
+  return { id: uid("case"), name: name||"Untitled Case", color: color||"#c1442e", createdAt: nowIso() };
+}
+
+function emptyProject(){
+  return { id: uid("proj"), name: "Untitled Investigation", cards: {}, connections: {}, cases: {}, createdAt: nowIso() };
+}
+
+function seedProject(){
+  const p = emptyProject();
+  p.name = "The Missing Ledger";
+  const c1 = newCase("The Missing Ledger", "#c1442e");
+  p.cases[c1.id] = c1;
+
+  const a = newCard("person", -260, -60);
+  a.title = "Marcus Voss"; a.subtitle = "Person of Interest";
+  a.notes = "Former accountant at Halden & Kray. Resigned abruptly three weeks before the ledger disappeared.";
+  a.caseId = c1.id;
+  a.fields = [ {...newField("text"), label:"Occupation", value:"Accountant"}, {...newField("date"), label:"Last Seen", value:"2026-06-14"} ];
+
+  const b = newCard("place", 90, -170);
+  b.title = "Halden & Kray Offices"; b.subtitle = "41 Ferrow Street";
+  b.notes = "Fourth floor archive room was accessed after hours the night of the theft.";
+  b.caseId = c1.id;
+  b.fields = [ {...newField("text"), label:"District", value:"Old Docks"} ];
+
+  const cc = newCard("evidence", 60, 130);
+  cc.title = "Torn Receipt"; cc.subtitle = "Evidence #003";
+  cc.notes = "Partial receipt found near the archive door. Timestamp matches the break-in window.";
+  cc.caseId = c1.id;
+  cc.fields = [ {...newField("checkbox"), label:"Logged into evidence locker", value:true} ];
+
+  const dd = newCard("organization", -300, 220);
+  dd.title = "Halden & Kray"; dd.subtitle = "Financial Consultancy";
+  dd.notes = "Firm under investigation for irregular filings over the past two fiscal years.";
+  dd.caseId = c1.id;
+
+  [a,b,cc,dd].forEach(card => p.cards[card.id] = card);
+  const k1 = newConnection(a.id, b.id, "red"); k1.label = "worked at";
+  const k2 = newConnection(b.id, cc.id, "yellow"); k2.label = "found near";
+  const k3 = newConnection(a.id, dd.id, "blue"); k3.label = "employed by";
+  [k1,k2,k3].forEach(k => p.connections[k.id] = k);
+  return p;
+}
+
+/* ============================== 2. DATA LAYER =========================== */
+/* Persistence gateway. Substitutes literal SQLite (unavailable in a
+   sandboxed browser artifact) with the platform's durable per-user
+   key/value store — offline-first and auto-saved, same guarantees. */
+
+const STORAGE_KEY = "zero-origin:project";
+let saveTimer = null;
+
+/* ---- asset store: images/attachments live in their own keys so the
+   project blob itself stays tiny. This is the fix for "storage full" —
+   previously every photo and file was base64-embedded straight into the
+   single project record, which blew past the per-key size cap after a
+   handful of uploads. Now cards only hold an assetId reference. ---- */
+function assetKey(id){ return "zero-origin:asset:" + id; }
+
+async function saveAsset(dataUrl){
+  const id = uid("asset");
+  Store.assets[id] = dataUrl;
+  try{
+    await window.storage.set(assetKey(id), dataUrl, false);
+  }catch(e){
+    console.error("Asset save failed:", e);
+    toast("Couldn't save that file — it may be too large.");
+  }
+  return id;
+}
+
+async function deleteAsset(id){
+  if(!id) return;
+  delete Store.assets[id];
+  try{ await window.storage.delete(assetKey(id), false); }catch(e){ /* already gone */ }
+}
+
+async function getAsset(id){
+  if(!id) return null;
+  if(Store.assets[id] !== undefined) return Store.assets[id];
+  try{
+    const res = await window.storage.get(assetKey(id), false);
+    const val = res ? res.value : null;
+    Store.assets[id] = val;
+    return val;
+  }catch(e){ return null; }
+}
+
+/* Collect every assetId referenced by a project, for warm-loading on open. */
+function collectAssetIds(project){
+  const ids = new Set();
+  Object.values(project.cards||{}).forEach(c=>{
+    if(c.image) ids.add(c.image);
+    (c.attachments||[]).forEach(a=>{ if(a.assetId) ids.add(a.assetId); });
+    (c.fields||[]).forEach(f=>{
+      if(f.type==="image" && f.value) ids.add(f.value);
+      if(f.type==="file" && f.value && f.value.assetId) ids.add(f.value.assetId);
+    });
+  });
+  return [...ids];
+}
+async function preloadAssets(project){
+  await Promise.all(collectAssetIds(project).map(id=>getAsset(id)));
+}
+
+async function loadProject(){
+  try{
+    const res = await window.storage.get(STORAGE_KEY, false);
+    if(res && res.value) return JSON.parse(res.value);
+  }catch(e){ /* no saved project yet */ }
+  return null;
+}
+
+function scheduleSave(){
+  setSaveState("saving");
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(async () => {
+    try{
+      await window.storage.set(STORAGE_KEY, JSON.stringify(Store.project), false);
+      setSaveState("saved");
+    }catch(e){
+      console.error("Autosave failed:", e);
+      setSaveState("error");
+    }
+  }, 450);
+}
+
+function setSaveState(s){
+  const el = document.getElementById("save-indicator");
+  const txt = document.getElementById("save-text");
+  if(!el) return;
+  if(s==="saving"){ el.classList.remove("saved"); txt.textContent = "Saving…"; }
+  else if(s==="saved"){ el.classList.add("saved"); txt.textContent = "All changes saved"; }
+  else { el.classList.remove("saved"); txt.textContent = "Save failed (storage full?)"; }
+}
+
+async function exportJSON(){
+  // Inline the real asset data into a deep copy so the exported file is
+  // self-contained and portable, while the live project keeps only references.
+  const proj = deepClone(Store.project);
+  await Promise.all(collectAssetIds(Store.project).map(id=>getAsset(id)));
+  Object.values(proj.cards||{}).forEach(c=>{
+    if(c.image) c.image = Store.assets[c.image] || null;
+    (c.attachments||[]).forEach(a=>{ if(a.assetId){ a.data = Store.assets[a.assetId]||null; delete a.assetId; } });
+    (c.fields||[]).forEach(f=>{
+      if(f.type==="image" && f.value) f.value = Store.assets[f.value] || "";
+      if(f.type==="file" && f.value && f.value.assetId){ f.value = {name:f.value.name, size:f.value.size, data:Store.assets[f.value.assetId]||null}; }
+    });
+  });
+  const blob = new Blob([JSON.stringify(proj, null, 2)], {type:"application/json"});
+  downloadBlob(blob, sanitizeFilename(Store.project.name) + ".zorigin.json");
+  toast("Project exported as JSON");
+}
+function sanitizeFilename(s){ return (s||"project").replace(/[^a-z0-9\-_ ]/gi,"").trim().replace(/\s+/g,"-") || "project"; }
+function downloadBlob(blob, filename){
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url; a.download = filename;
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  setTimeout(()=>URL.revokeObjectURL(url), 2000);
+}
+
+function importJSONFile(file){
+  const reader = new FileReader();
+  reader.onload = async () => {
+    try{
+      const proj = JSON.parse(reader.result);
+      if(!proj.cards || !proj.connections) throw new Error("Not a Zero Origin project file");
+      // Move any inline base64 payloads (older exports, or hand-edited files)
+      // into the asset store so the project blob stays small.
+      for(const c of Object.values(proj.cards||{})){
+        if(c.image && c.image.startsWith && c.image.startsWith("data:")) c.image = await saveAsset(c.image);
+        for(const a of (c.attachments||[])){
+          if(a.data){ a.assetId = await saveAsset(a.data); delete a.data; }
+        }
+        for(const f of (c.fields||[])){
+          if(f.type==="image" && f.value && f.value.startsWith && f.value.startsWith("data:")) f.value = await saveAsset(f.value);
+          if(f.type==="file" && f.value && f.value.data){ f.value = {name:f.value.name, size:f.value.size, assetId: await saveAsset(f.value.data)}; }
+        }
+      }
+      Store.project = proj;
+      Store.history = [deepClone(proj)]; Store.historyIndex = 0;
+      UI.selection = null;
+      buildWorldFromScratch();
+      renderAll();
+      scheduleSave();
+      toast("Project imported");
+    }catch(e){
+      toast("Import failed: " + e.message);
+    }
+  };
+  reader.readAsText(file);
+}
+
+function exportPNG(){
+  const ids = Object.keys(Store.project.cards);
+  if(ids.length===0){ toast("Nothing to export yet"); return; }
+  let minX=Infinity,minY=Infinity,maxX=-Infinity,maxY=-Infinity;
+  ids.forEach(id=>{
+    const c = Store.project.cards[id];
+    minX=Math.min(minX,c.x); minY=Math.min(minY,c.y);
+    maxX=Math.max(maxX,c.x+c.w); maxY=Math.max(maxY,c.y+c.h);
+  });
+  const pad=80;
+  minX-=pad; minY-=pad; maxX+=pad; maxY+=pad;
+  const w = Math.ceil(maxX-minX), h = Math.ceil(maxY-minY);
+  const canvas = document.createElement("canvas");
+  canvas.width = w; canvas.height = h;
+  const ctx = canvas.getContext("2d");
+  ctx.fillStyle = "#121011"; ctx.fillRect(0,0,w,h);
+  // dot texture
+  ctx.fillStyle = "rgba(255,255,255,0.035)";
+  for(let x=0;x<w;x+=26){ for(let y=0;y<h;y+=26){ ctx.fillRect(x,y,1,1); } }
+
+  // connections
+  Object.values(Store.project.connections).forEach(k=>{
+    const c1 = Store.project.cards[k.from], c2 = Store.project.cards[k.to];
+    if(!c1||!c2) return;
+    const p1 = {x:c1.x+c1.w/2-minX, y:c1.y+c1.h/2-minY};
+    const p2 = {x:c2.x+c2.w/2-minX, y:c2.y+c2.h/2-minY};
+    ctx.strokeStyle = THREAD_COLORS[k.color]||THREAD_COLORS.red;
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    const mx=(p1.x+p2.x)/2, my=(p1.y+p2.y)/2 - 24;
+    ctx.moveTo(p1.x,p1.y); ctx.quadraticCurveTo(mx,my,p2.x,p2.y); ctx.stroke();
+  });
+  // cards
+  Object.values(Store.project.cards).forEach(c=>{
+    if(c.visible===false) return;
+    const x=c.x-minX, y=c.y-minY;
+    ctx.fillStyle = "#241f1b";
+    roundRect(ctx,x,y,c.w,c.h,4); ctx.fill();
+    ctx.strokeStyle = "#3a332c"; ctx.lineWidth=1;
+    roundRect(ctx,x,y,c.w,c.h,4); ctx.stroke();
+    ctx.fillStyle = c.color || "#c1442e";
+    ctx.beginPath(); ctx.arc(x+c.w/2, y, 5, 0, Math.PI*2); ctx.fill();
+    ctx.fillStyle = "#ece4d6"; ctx.font = "600 13px sans-serif";
+    ctx.fillText(truncate(c.title,26), x+12, y+24);
+    ctx.fillStyle = "#a89a86"; ctx.font = "10px monospace";
+    ctx.fillText((CARD_TYPES[c.type]||{label:c.type}).label.toUpperCase(), x+12, y+40);
+    ctx.fillStyle = "#a89a86"; ctx.font = "11px sans-serif";
+    wrapText(ctx, c.notes||"", x+12, y+58, c.w-24, 14, 3);
+  });
+  canvas.toBlob(blob => { downloadBlob(blob, sanitizeFilename(Store.project.name)+".png"); toast("Board exported as PNG"); });
+}
+function roundRect(ctx,x,y,w,h,r){
+  ctx.beginPath();
+  ctx.moveTo(x+r,y); ctx.arcTo(x+w,y,x+w,y+h,r); ctx.arcTo(x+w,y+h,x,y+h,r);
+  ctx.arcTo(x,y+h,x,y,r); ctx.arcTo(x,y,x+w,y,r); ctx.closePath();
+}
+function truncate(s,n){ s=s||""; return s.length>n ? s.slice(0,n-1)+"…" : s; }
+function wrapText(ctx,text,x,y,maxW,lh,maxLines){
+  const words = (text||"").split(/\s+/); let line="", lines=0;
+  for(let i=0;i<words.length;i++){
+    const test = line + words[i] + " ";
+    if(ctx.measureText(test).width > maxW && line){
+      ctx.fillText(line, x, y); y+=lh; lines++; line = words[i]+" ";
+      if(lines>=maxLines-1){ ctx.fillText(truncate(line,40), x, y); return; }
+    } else line = test;
+  }
+  if(line) ctx.fillText(line, x, y);
+}
+
+function exportPDF(){
+  toast('Opening print dialog — choose "Save as PDF"');
+  setTimeout(()=>window.print(), 300);
+}
+
+/* ============================== 3. STATE / STORE ========================= */
+
+const Store = {
+  project: emptyProject(),
+  history: [],
+  historyIndex: -1,
+  assets: {},   // assetId -> dataURL (images) or JSON string (files), warm-cached
+};
+
+const UI = {
+  tab: "tools",
+  selection: null,        // {kind:'card'|'conn', id}
+  activeCaseFilter: null,
+  tool: "select",         // 'select' | 'connect'
+  connectColor: "red",
+  connectFrom: null,
+  search: "",
+  viewport: { x: 0, y: 0, scale: 1 },
+  gridSnap: false,
+  cardEls: new Map(),      // id -> DOM element
+};
+
+function pushHistory(){
+  // truncate redo branch
+  Store.history = Store.history.slice(0, Store.historyIndex+1);
+  Store.history.push(deepClone(Store.project));
+  if(Store.history.length>80) Store.history.shift();
+  Store.historyIndex = Store.history.length-1;
+  updateUndoRedoButtons();
+}
+function undo(){
+  if(Store.historyIndex<=0) return;
+  Store.historyIndex--;
+  Store.project = deepClone(Store.history[Store.historyIndex]);
+  afterHistoryJump();
+}
+function redo(){
+  if(Store.historyIndex>=Store.history.length-1) return;
+  Store.historyIndex++;
+  Store.project = deepClone(Store.history[Store.historyIndex]);
+  afterHistoryJump();
+}
+function afterHistoryJump(){
+  if(UI.selection && !Store.project.cards[UI.selection.id] && !Store.project.connections[UI.selection.id]) UI.selection=null;
+  buildWorldFromScratch();
+  renderAll();
+  scheduleSave();
+  updateUndoRedoButtons();
+}
+function updateUndoRedoButtons(){
+  document.getElementById("btn-undo").disabled = Store.historyIndex<=0;
+  document.getElementById("btn-redo").disabled = Store.historyIndex>=Store.history.length-1;
+}
+function deepClone(o){ return JSON.parse(JSON.stringify(o)); }
+
+function commit(){ pushHistory(); scheduleSave(); }
+
+/* ---- mutations ---- */
+function addCard(type){
+  const wrap = document.getElementById("canvas-wrap");
+  const rect = wrap.getBoundingClientRect();
+  const cx = (rect.width/2 - UI.viewport.x)/UI.viewport.scale;
+  const cy = (rect.height/2 - UI.viewport.y)/UI.viewport.scale;
+  const card = newCard(type, Math.round(cx-110), Math.round(cy-66));
+  if(UI.activeCaseFilter) card.caseId = UI.activeCaseFilter;
+  Store.project.cards[card.id] = card;
+  commit();
+  createCardDom(card);
+  selectItem("card", card.id);
+  renderConnections();
+  toggleEmptyHint();
+  return card;
+}
+function deleteCard(id){
+  const card = Store.project.cards[id];
+  if(card){
+    if(card.image) deleteAsset(card.image);
+    (card.attachments||[]).forEach(a=>{ if(a.assetId) deleteAsset(a.assetId); });
+    (card.fields||[]).forEach(f=>{
+      if(f.type==="image" && f.value) deleteAsset(f.value);
+      if(f.type==="file" && f.value && f.value.assetId) deleteAsset(f.value.assetId);
+    });
+  }
+  delete Store.project.cards[id];
+  Object.keys(Store.project.connections).forEach(k=>{
+    const c = Store.project.connections[k];
+    if(c.from===id || c.to===id) delete Store.project.connections[k];
+  });
+  const el = UI.cardEls.get(id); if(el) el.remove();
+  UI.cardEls.delete(id);
+  if(UI.selection && UI.selection.id===id) UI.selection=null;
+  commit();
+  renderConnections(); renderProps(); renderLayers(); toggleEmptyHint();
+}
+function updateCard(id, patch){
+  const c = Store.project.cards[id]; if(!c) return;
+  Object.assign(c, patch); c.updatedAt = nowIso();
+}
+function addConnection(fromId, toId, color){
+  if(fromId===toId) return null;
+  const exists = Object.values(Store.project.connections).some(k => (k.from===fromId&&k.to===toId)||(k.from===toId&&k.to===fromId));
+  if(exists){ toast("Thread already connects these cards"); return null; }
+  const k = newConnection(fromId, toId, color);
+  Store.project.connections[k.id] = k;
+  commit();
+  return k;
+}
+function deleteConnection(id){
+  delete Store.project.connections[id];
+  if(UI.selection && UI.selection.id===id) UI.selection=null;
+  commit();
+  renderConnections(); renderProps();
+}
+
+/* ============================== 4. RENDER / UI =========================== */
+
+const worldEl = () => document.getElementById("world");
+const svgEl = () => document.getElementById("conn-svg");
+const wrapEl = () => document.getElementById("canvas-wrap");
+
+/* Promote #world/#conn-svg to their own GPU layer only while the user is
+   actively panning or zooming. A permanently-on will-change:transform
+   causes Chromium/WebKit to keep rendering from a raster cached at a lower
+   resolution once you zoom in further than where the layer was created —
+   that's what caused the persistent blur. Dropping the layer once idle
+   forces a full-quality, sharp repaint at the settled zoom level. */
+let interactionEndTimer = null;
+function beginInteraction(){
+  clearTimeout(interactionEndTimer);
+  worldEl().classList.add("interacting");
+  svgEl().classList.add("interacting");
+}
+function endInteraction(delay){
+  clearTimeout(interactionEndTimer);
+  interactionEndTimer = setTimeout(()=>{
+    worldEl().classList.remove("interacting");
+    svgEl().classList.remove("interacting");
+  }, delay||120);
+}
+
+function applyViewportTransform(){
+  worldEl().style.transform = `translate(${UI.viewport.x}px,${UI.viewport.y}px) scale(${UI.viewport.scale})`;
+  svgEl().style.transform = worldEl().style.transform;
+  document.getElementById("zoom-label").textContent = Math.round(UI.viewport.scale*100)+"%";
+}
+
+function buildWorldFromScratch(){
+  worldEl().innerHTML = "";
+  UI.cardEls.clear();
+  Object.values(Store.project.cards).forEach(createCardDom);
+  renderConnections();
+  toggleEmptyHint();
+}
+
+function toggleEmptyHint(){
+  const hasCards = Object.keys(Store.project.cards).length>0;
+  document.getElementById("empty-hint").style.display = hasCards ? "none" : "flex";
+}
+
+function createCardDom(card){
+  const el = document.createElement("div");
+  el.className = "card";
+  el.dataset.id = card.id;
+  el.innerHTML = `
+    <div class="pin" style="background:${card.color}"></div>
+    <div class="connect-port left"></div>
+    <div class="connect-port right"></div>
+    <div class="card-head">
+      ${card.image ? `<img class="card-thumb" src="${Store.assets[card.image]||""}">` : `<div class="card-thumb-placeholder">${typeIconSvg(card.type)}</div>`}
+      <div class="card-titles">
+        <div class="card-title"></div>
+        <div class="card-type"></div>
+      </div>
+    </div>
+    <div class="card-body"><div class="card-notes"></div></div>
+    <div class="card-foot">
+      <div class="card-case-tag"></div>
+      <div class="card-field-count"></div>
+    </div>
+    <div class="resize-handle"></div>
+  `;
+  worldEl().appendChild(el);
+  UI.cardEls.set(card.id, el);
+  updateCardDom(card);
+  wireCardEvents(el, card.id);
+  return el;
+}
+
+function typeIconSvg(){
+  return `<svg class="icon" viewBox="0 0 24 24" style="width:16px;height:16px"><circle cx="12" cy="8" r="3"/><path d="M6 20c0-3.3 2.7-6 6-6s6 2.7 6 6"/></svg>`;
+}
+
+function updateCardDom(card){
+  const el = UI.cardEls.get(card.id); if(!el) return;
+  el.style.left = card.x+"px"; el.style.top = card.y+"px";
+  el.style.width = card.w+"px"; el.style.height = card.h+"px";
+  el.querySelector(".card-title").textContent = card.title || "Untitled";
+  el.querySelector(".card-type").textContent = (CARD_TYPES[card.type]||{label:card.type}).label;
+  el.querySelector(".card-notes").textContent = card.notes || "";
+  el.querySelector(".pin").style.background = card.color;
+  const thumbWrap = el.querySelector(".card-thumb, .card-thumb-placeholder");
+  if(card.image){
+    const url = Store.assets[card.image];
+    if(thumbWrap.tagName!=="IMG"){ thumbWrap.outerHTML = `<img class="card-thumb" src="${url||""}">`; }
+    else thumbWrap.src = url||"";
+    if(url===undefined){ getAsset(card.image).then(()=> updateCardDom(card)); }
+  } else if(thumbWrap.tagName==="IMG"){
+    thumbWrap.outerHTML = `<div class="card-thumb-placeholder">${typeIconSvg()}</div>`;
+  }
+  const caseTag = el.querySelector(".card-case-tag");
+  const kase = card.caseId ? Store.project.cases[card.caseId] : null;
+  caseTag.innerHTML = kase ? `<span class="cdot" style="background:${kase.color}"></span>${escapeHtml(kase.name)}` : "";
+  el.querySelector(".card-field-count").textContent = card.fields.length ? (card.fields.length+" field"+(card.fields.length>1?"s":"")) : "";
+  el.classList.toggle("selected", UI.selection && UI.selection.kind==="card" && UI.selection.id===card.id);
+  el.classList.toggle("hidden-layer", card.visible===false);
+  applySearchDim(el, card);
+  applyCaseFilterDim(el, card);
+}
+
+function applySearchDim(el, card){
+  if(!UI.search){ el.classList.remove("dimmed","match"); return; }
+  const q = UI.search.toLowerCase();
+  const hay = [card.title, card.subtitle, card.notes, ...(card.fields||[]).map(f=>String(f.value))].join(" ").toLowerCase();
+  const isMatch = hay.includes(q);
+  el.classList.toggle("match", isMatch);
+  el.classList.toggle("dimmed", !isMatch);
+}
+function applyCaseFilterDim(el, card){
+  if(!UI.activeCaseFilter) return;
+  if(card.caseId !== UI.activeCaseFilter) el.classList.add("dimmed");
+}
+
+function renderAllCards(){
+  Object.values(Store.project.cards).forEach(c=>{
+    if(!UI.cardEls.has(c.id)) createCardDom(c);
+    updateCardDom(c);
+  });
+}
+
+function connColor(k){ return THREAD_COLORS[k.color] || THREAD_COLORS.red; }
+
+function renderConnections(){
+  const svg = svgEl();
+  svg.innerHTML = "";
+  Object.values(Store.project.connections).forEach(k=>{
+    const c1 = Store.project.cards[k.from], c2 = Store.project.cards[k.to];
+    if(!c1 || !c2) return;
+    const p1 = {x:c1.x+c1.w/2, y:c1.y+c1.h/2};
+    const p2 = {x:c2.x+c2.w/2, y:c2.y+c2.h/2};
+    const mx = (p1.x+p2.x)/2, my = (p1.y+p2.y)/2 - 30;
+    const d = `M ${p1.x} ${p1.y} Q ${mx} ${my} ${p2.x} ${p2.y}`;
+    const g = document.createElementNS("http://www.w3.org/2000/svg","g");
+    g.dataset.id = k.id;
+
+    const hit = document.createElementNS("http://www.w3.org/2000/svg","path");
+    hit.setAttribute("d", d); hit.setAttribute("stroke", "transparent"); hit.setAttribute("stroke-width","16");
+    hit.setAttribute("fill","none"); hit.style.pointerEvents="stroke"; hit.style.cursor="pointer";
+
+    const line = document.createElementNS("http://www.w3.org/2000/svg","path");
+    line.setAttribute("d", d);
+    line.setAttribute("stroke", connColor(k));
+    line.setAttribute("stroke-width", (UI.selection && UI.selection.kind==="conn" && UI.selection.id===k.id) ? "3.5" : "2");
+    line.setAttribute("fill","none");
+    line.setAttribute("vector-effect","non-scaling-stroke");
+    line.setAttribute("stroke-dasharray", k.style==="dashed" ? "6,5" : "none");
+    line.style.filter = (UI.selection && UI.selection.kind==="conn" && UI.selection.id===k.id) ? `drop-shadow(0 0 3px ${connColor(k)})` : "none";
+
+    [p1,p2].forEach(p=>{
+      const dot = document.createElementNS("http://www.w3.org/2000/svg","circle");
+      dot.setAttribute("cx",p.x); dot.setAttribute("cy",p.y); dot.setAttribute("r","3.5");
+      dot.setAttribute("fill", connColor(k));
+      g.appendChild(dot);
+    });
+
+    if(k.label){
+      const t = document.createElementNS("http://www.w3.org/2000/svg","text");
+      t.setAttribute("x", mx); t.setAttribute("y", my-6);
+      t.setAttribute("fill", "#a89a86"); t.setAttribute("font-size","10.5"); t.setAttribute("font-family","ui-monospace,monospace");
+      t.setAttribute("text-anchor","middle"); t.style.pointerEvents="none";
+      t.textContent = k.label;
+      g.appendChild(t);
+    }
+
+    g.appendChild(line); g.appendChild(hit);
+    g.addEventListener("pointerdown", (e)=>{ e.stopPropagation(); selectItem("conn", k.id); });
+    svg.appendChild(g);
+  });
+}
+
+/* ---- selection / properties panel ---- */
+function selectItem(kind, id){
+  UI.selection = {kind, id};
+  document.querySelectorAll(".card").forEach(el=>el.classList.remove("selected"));
+  if(kind==="card"){
+    const el = UI.cardEls.get(id); if(el) el.classList.add("selected");
+  }
+  renderConnections();
+  renderProps();
+  renderLayers();
+}
+function clearSelection(){
+  UI.selection = null;
+  document.querySelectorAll(".card").forEach(el=>el.classList.remove("selected"));
+  renderConnections(); renderProps(); renderLayers();
+}
+
+function renderProps(){
+  const body = document.getElementById("props-body");
+  if(!UI.selection){ body.innerHTML = `<div id="props-empty">Select a card or thread to view and edit its details here.</div>`; return; }
+  if(UI.selection.kind==="card") return renderCardProps(body, Store.project.cards[UI.selection.id]);
+  if(UI.selection.kind==="conn") return renderConnProps(body, Store.project.connections[UI.selection.id]);
+}
+
+function renderCardProps(body, card){
+  if(!card){ UI.selection=null; body.innerHTML = `<div id="props-empty">Select a card or thread.</div>`; return; }
+  const typeOptions = Object.keys(CARD_TYPES).map(t=>`<option value="${t}" ${t===card.type?"selected":""}>${CARD_TYPES[t].label}</option>`).join("");
+  const caseOptions = `<option value="">— No case —</option>` + Object.values(Store.project.cases).map(c=>`<option value="${c.id}" ${c.id===card.caseId?"selected":""}>${escapeHtml(c.name)}</option>`).join("");
+
+  body.innerHTML = `
+    <div class="save-card-row">
+      <button class="btn-primary" id="pf-save-card">
+        <svg class="icon" viewBox="0 0 24 24" style="width:14px;height:14px"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2Z"/><path d="M17 21v-8H7v8M7 3v5h8"/></svg>
+        Save Card
+      </button>
+      <span class="save-hint" id="pf-save-hint">changes autosave too</span>
+    </div>
+    <div class="pf-group">
+      <label class="pf-label">Title</label>
+      <input class="pf-input" id="pf-title" value="${escapeHtml(card.title)}">
+    </div>
+    <div class="pf-group">
+      <label class="pf-label">Subtitle</label>
+      <input class="pf-input" id="pf-subtitle" value="${escapeHtml(card.subtitle)}">
+    </div>
+    <div class="pf-group pf-row">
+      <div>
+        <label class="pf-label">Type</label>
+        <select class="pf-select" id="pf-type">${typeOptions}</select>
+      </div>
+      <div>
+        <label class="pf-label">Case</label>
+        <select class="pf-select" id="pf-case">${caseOptions}</select>
+      </div>
+    </div>
+    <div class="pf-group">
+      <label class="pf-label">Pin Color</label>
+      <div class="color-row" id="pf-color-row">
+        ${["#c1442e","#3d7dca","#4c9a6a","#d4a24c","#9463c4","#d97a3a","#9a8f7f","#e8dfce"].map(hex=>`<div class="color-dot ${card.color===hex?'active':''}" data-color="${hex}" style="background:${hex}"></div>`).join("")}
+      </div>
+    </div>
+    <div class="pf-group">
+      <label class="pf-label">Photo</label>
+      <div class="thumb-row">
+        ${card.image ? `<img class="thumb-preview" src="${Store.assets[card.image]||""}">` : `<div class="thumb-preview-empty">—</div>`}
+        <button class="btn-sm" id="pf-img-upload">Upload</button>
+        ${card.image ? `<button class="btn-sm btn-danger" id="pf-img-remove">Remove</button>` : ""}
+      </div>
+    </div>
+    <div class="pf-group">
+      <label class="pf-label">Notes</label>
+      <textarea class="pf-textarea" id="pf-notes">${escapeHtml(card.notes)}</textarea>
+    </div>
+
+    <div class="pf-group">
+      <label class="pf-label">Custom Fields</label>
+      <div id="pf-fields"></div>
+      <div class="add-field-menu">
+        ${FIELD_TYPES.map(t=>`<button class="aft-btn" data-ftype="${t}">+ ${t}</button>`).join("")}
+      </div>
+    </div>
+
+    <div class="pf-group">
+      <label class="pf-label">Attachments</label>
+      <div id="pf-attachments"></div>
+      <button class="btn-sm" id="pf-attach-upload">+ Attach file</button>
+    </div>
+
+    <div class="pf-group">
+      <label class="pf-label">Threads (${connectionsFor(card.id).length})</label>
+      <div id="pf-conns"></div>
+    </div>
+
+    <div class="pf-group" style="margin-top:22px;">
+      <button class="btn-sm btn-danger" id="pf-delete-card" style="width:100%;">Delete card</button>
+    </div>
+  `;
+
+  document.getElementById("pf-save-card").onclick = ()=>{
+    commit();
+    const hint = document.getElementById("pf-save-hint");
+    if(hint){ hint.textContent = "saved ✓"; setTimeout(()=>{ if(hint.isConnected) hint.textContent = "changes autosave too"; }, 1600); }
+    toast("Card saved");
+  };
+
+  document.getElementById("pf-title").oninput = e => { updateCard(card.id,{title:e.target.value}); updateCardDom(card); };
+  document.getElementById("pf-title").onchange = ()=>commit();
+  document.getElementById("pf-subtitle").oninput = e => { updateCard(card.id,{subtitle:e.target.value}); };
+  document.getElementById("pf-subtitle").onchange = ()=>commit();
+  document.getElementById("pf-type").onchange = e => { updateCard(card.id,{type:e.target.value}); updateCardDom(card); commit(); };
+  document.getElementById("pf-case").onchange = e => { updateCard(card.id,{caseId:e.target.value||null}); updateCardDom(card); commit(); renderCases(); };
+  document.getElementById("pf-notes").oninput = e => { updateCard(card.id,{notes:e.target.value}); updateCardDom(card); };
+  document.getElementById("pf-notes").onchange = ()=>commit();
+
+  document.querySelectorAll("#pf-color-row .color-dot").forEach(d=>{
+    d.onclick = ()=>{ updateCard(card.id,{color:d.dataset.color}); updateCardDom(card); commit(); renderCardProps(body, card); };
+  });
+
+  document.getElementById("pf-img-upload").onclick = ()=>{
+    pendingUploadCardId = card.id;
+    document.getElementById("file-image").click();
+  };
+  const imgPreview = body.querySelector(".thumb-preview");
+  if(imgPreview) imgPreview.onclick = ()=>{ if(card.image) openLightbox(Store.assets[card.image], card.title); };
+  const imgRemove = document.getElementById("pf-img-remove");
+  if(imgRemove) imgRemove.onclick = ()=>{
+    if(card.image) deleteAsset(card.image);
+    updateCard(card.id,{image:null}); updateCardDom(card); commit(); renderCardProps(body,card);
+  };
+
+  document.getElementById("pf-attach-upload").onclick = ()=>{
+    pendingUploadCardId = card.id;
+    document.getElementById("file-attach").click();
+  };
+
+  document.getElementById("pf-delete-card").onclick = ()=>{
+    if(confirm(`Delete "${card.title}"? This also removes its threads.`)) deleteCard(card.id);
+  };
+
+  renderFieldsList(card);
+  renderAttachmentsList(card);
+  renderConnsList(card);
+
+  document.querySelectorAll(".aft-btn").forEach(b=>{
+    b.onclick = ()=>{
+      card.fields.push(newField(b.dataset.ftype));
+      commit(); renderFieldsList(card); updateCardDom(card);
+    };
+  });
+}
+
+function renderFieldsList(card){
+  const wrap = document.getElementById("pf-fields");
+  wrap.innerHTML = card.fields.map(f => fieldRowHtml(f)).join("");
+  card.fields.forEach(f=>{
+    const row = wrap.querySelector(`[data-field="${f.id}"]`);
+    if(!row) return;
+    row.querySelector(".fld-label").oninput = e=>{ f.label = e.target.value; };
+    row.querySelector(".fld-label").onchange = ()=>{ commit(); updateCardDom(card); };
+    const valEl = row.querySelector(".fld-value");
+    if(valEl){
+      const evt = (f.type==="checkbox") ? "change" : "input";
+      valEl[evt==="change"?"onchange":"oninput"] = e=>{
+        f.value = f.type==="checkbox" ? e.target.checked : e.target.value;
+        if(evt==="change") commit();
+      };
+      if(f.type!=="checkbox") valEl.onchange = ()=>commit();
+    }
+    if(f.type==="image" || f.type==="file"){
+      const btn = row.querySelector(".fld-upload-btn");
+      if(btn) btn.onclick = ()=>{
+        if(f.type==="image" && f.value) deleteAsset(f.value);
+        if(f.type==="file" && f.value && f.value.assetId) deleteAsset(f.value.assetId);
+        pendingFieldTarget = {cardId: card.id, fieldId: f.id};
+        document.getElementById(f.type==="image"?"file-image":"file-attach").click();
+      };
+      const clearBtn = row.querySelector(".fld-clear-btn");
+      if(clearBtn) clearBtn.onclick = ()=>{
+        if(f.type==="image" && f.value) deleteAsset(f.value);
+        if(f.type==="file" && f.value && f.value.assetId) deleteAsset(f.value.assetId);
+        f.value = f.type==="checkbox" ? false : "";
+        commit(); renderFieldsList(card);
+      };
+    }
+    row.querySelector(".field-del").onclick = ()=>{
+      card.fields = card.fields.filter(x=>x.id!==f.id);
+      commit(); renderFieldsList(card); updateCardDom(card);
+    };
+  });
+}
+function fieldRowHtml(f){
+  let valueHtml = "";
+  if(f.type==="text") valueHtml = `<input class="pf-input fld-value" value="${escapeHtml(f.value)}">`;
+  else if(f.type==="number") valueHtml = `<input type="number" class="pf-input fld-value" value="${escapeHtml(f.value)}">`;
+  else if(f.type==="date") valueHtml = `<input type="date" class="pf-input fld-value" value="${escapeHtml(f.value)}">`;
+  else if(f.type==="link") valueHtml = `<input type="url" class="pf-input fld-value" placeholder="https://…" value="${escapeHtml(f.value)}">`;
+  else if(f.type==="richtext") valueHtml = `<textarea class="pf-textarea fld-value" style="min-height:44px;">${escapeHtml(f.value)}</textarea>`;
+  else if(f.type==="checkbox") valueHtml = `<div class="check-row"><input type="checkbox" class="fld-value" ${f.value?"checked":""}><span style="font-size:11.5px;color:var(--text-muted)">${f.value?"Checked":"Unchecked"}</span></div>`;
+  else if(f.type==="image") valueHtml = f.value
+      ? `<img src="${Store.assets[f.value]||""}" style="width:100%;border-radius:4px;margin:4px 0;"><div style="display:flex;gap:6px;"><button class="btn-sm fld-upload-btn">Replace</button><button class="btn-sm btn-danger fld-clear-btn">Remove</button></div>`
+      : `<button class="btn-sm fld-upload-btn">Upload image</button>`;
+  else if(f.type==="file") valueHtml = (f.value && f.value.assetId)
+      ? `<div class="attach-row" style="margin:4px 0;"><span class="attach-name">${escapeHtml(f.value.name||"attachment")}</span><span class="attach-size">${fmtBytes(f.value.size||0)}</span></div><div style="display:flex;gap:6px;"><button class="btn-sm fld-upload-btn">Replace</button><button class="btn-sm btn-danger fld-clear-btn">Remove</button></div>`
+      : `<button class="btn-sm fld-upload-btn">Upload file</button>`;
+  return `<div class="field-row" data-field="${f.id}">
+    <div class="field-row-top">
+      <input class="pf-input fld-label" value="${escapeHtml(f.label)}">
+      <span class="field-type-tag">${f.type}</span>
+      <button class="field-del" title="Remove field"><svg class="icon" viewBox="0 0 24 24" style="width:13px;height:13px"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+    </div>
+    ${valueHtml}
+  </div>`;
+}
+
+function renderAttachmentsList(card){
+  const wrap = document.getElementById("pf-attachments");
+  if(!card.attachments.length){ wrap.innerHTML = `<div class="hint" style="padding:2px 0 6px;">No attachments yet.</div>`; return; }
+  wrap.innerHTML = card.attachments.map(a=>`
+    <div class="attach-row" data-att="${a.id}">
+      <span class="attach-name">${escapeHtml(a.name)}</span>
+      <span class="attach-size">${fmtBytes(a.size||0)}</span>
+      <button class="field-del att-del" title="Remove"><svg class="icon" viewBox="0 0 24 24" style="width:13px;height:13px"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+    </div>`).join("");
+  wrap.querySelectorAll(".att-del").forEach(btn=>{
+    btn.onclick = ()=>{
+      const id = btn.closest(".attach-row").dataset.att;
+      const att = card.attachments.find(a=>a.id===id);
+      if(att && att.assetId) deleteAsset(att.assetId);
+      card.attachments = card.attachments.filter(a=>a.id!==id);
+      commit(); renderAttachmentsList(card);
+    };
+  });
+}
+
+function connectionsFor(cardId){
+  return Object.values(Store.project.connections).filter(k=>k.from===cardId||k.to===cardId);
+}
+function renderConnsList(card){
+  const wrap = document.getElementById("pf-conns");
+  const conns = connectionsFor(card.id);
+  if(!conns.length){ wrap.innerHTML = `<div class="hint" style="padding:2px 0;">No threads yet. Use the Thread tool to connect this card to others.</div>`; return; }
+  wrap.innerHTML = conns.map(k=>{
+    const otherId = k.from===card.id ? k.to : k.from;
+    const other = Store.project.cards[otherId];
+    return `<div class="conn-list-item" data-conn="${k.id}"><span class="cdd" style="background:${connColor(k)}"></span><span>${escapeHtml(other? other.title : "Unknown")}</span><button class="field-del conn-del"><svg class="icon" viewBox="0 0 24 24" style="width:12px;height:12px"><path d="M18 6 6 18M6 6l12 12"/></svg></button></div>`;
+  }).join("");
+  wrap.querySelectorAll(".conn-list-item").forEach(row=>{
+    row.addEventListener("click",(e)=>{
+      if(e.target.closest(".conn-del")) return;
+      selectItem("conn", row.dataset.conn);
+    });
+    row.querySelector(".conn-del").onclick = ()=> deleteConnection(row.dataset.conn);
+  });
+}
+
+function renderConnProps(body, k){
+  if(!k){ UI.selection=null; body.innerHTML = `<div id="props-empty">Select a card or thread.</div>`; return; }
+  const c1 = Store.project.cards[k.from], c2 = Store.project.cards[k.to];
+  body.innerHTML = `
+    <div class="pf-group">
+      <label class="pf-label">Thread</label>
+      <div class="hint" style="padding:0 0 8px;">${escapeHtml(c1?c1.title:"?")} &nbsp;→&nbsp; ${escapeHtml(c2?c2.title:"?")}</div>
+    </div>
+    <div class="pf-group">
+      <label class="pf-label">Color</label>
+      <div class="color-row" id="conn-color-row">
+        ${Object.keys(THREAD_COLORS).map(name=>`<div class="color-dot ${k.color===name?'active':''}" data-color="${name}" style="background:${THREAD_COLORS[name]}"></div>`).join("")}
+      </div>
+    </div>
+    <div class="pf-group">
+      <label class="pf-label">Label</label>
+      <input class="pf-input" id="conn-label" value="${escapeHtml(k.label)}" placeholder="e.g. worked with">
+    </div>
+    <div class="pf-group">
+      <label class="pf-label">Style</label>
+      <select class="pf-select" id="conn-style">
+        <option value="solid" ${k.style==="solid"?"selected":""}>Solid</option>
+        <option value="dashed" ${k.style==="dashed"?"selected":""}>Dashed</option>
+      </select>
+    </div>
+    <div class="pf-group" style="margin-top:20px;">
+      <button class="btn-sm btn-danger" id="conn-delete" style="width:100%;">Delete thread</button>
+    </div>
+  `;
+  document.querySelectorAll("#conn-color-row .color-dot").forEach(d=>{
+    d.onclick = ()=>{ k.color = d.dataset.color; commit(); renderConnections(); renderConnProps(body,k); };
+  });
+  document.getElementById("conn-label").oninput = e=>{ k.label = e.target.value; renderConnections(); };
+  document.getElementById("conn-label").onchange = ()=>commit();
+  document.getElementById("conn-style").onchange = e=>{ k.style = e.target.value; commit(); renderConnections(); };
+  document.getElementById("conn-delete").onclick = ()=> deleteConnection(k.id);
+}
+
+/* ---- sidebar tabs ---- */
+function renderSidebar(){
+  const c = document.getElementById("sidebar-content");
+  if(UI.tab==="tools") return renderTools(c);
+  if(UI.tab==="layers") return renderLayers(c);
+  if(UI.tab==="timeline") return renderTimeline(c);
+  if(UI.tab==="cases") return renderCases(c);
+}
+function renderTools(c){
+  c.innerHTML = `
+    <div class="sb-section-title">New card</div>
+    ${Object.keys(CARD_TYPES).map(t=>`<button class="type-btn" data-newtype="${t}"><span class="type-swatch" style="background:${CARD_TYPES[t].color}"></span>${CARD_TYPES[t].label}</button>`).join("")}
+
+    <div class="sb-section-title">Thread tool</div>
+    <button class="tb-btn" id="tool-connect" style="width:100%;justify-content:center;margin-bottom:10px;border:1px solid var(--border-soft);">
+      <svg class="icon" viewBox="0 0 24 24"><path d="M8 12h8M12 8v8"/><circle cx="12" cy="12" r="9"/></svg>
+      ${UI.tool==="connect" ? "Connecting… (Esc to stop)" : "Connect cards"}
+    </button>
+    <div class="thread-colors">
+      ${Object.keys(THREAD_COLORS).map(name=>`<div class="thread-swatch ${UI.connectColor===name?'active':''}" data-tcolor="${name}" style="background:${THREAD_COLORS[name]}" title="${name}"></div>`).join("")}
+    </div>
+    <div class="hint">Pick a color, click "Connect cards", then click two cards to link them with a thread.</div>
+  `;
+  c.querySelectorAll("[data-newtype]").forEach(b=> b.onclick = ()=> addCard(b.dataset.newtype));
+  c.querySelectorAll("[data-tcolor]").forEach(b=> b.onclick = ()=>{ UI.connectColor = b.dataset.tcolor; renderTools(c); });
+  document.getElementById("tool-connect").onclick = ()=> toggleConnectMode();
+}
+function toggleConnectMode(force){
+  UI.tool = (force!==undefined ? (force?"connect":"select") : (UI.tool==="connect" ? "select" : "connect"));
+  UI.connectFrom = null;
+  wrapEl().classList.toggle("connecting", UI.tool==="connect");
+  document.querySelectorAll(".card").forEach(el=>el.classList.remove("connect-source"));
+  renderSidebar();
+}
+function renderLayers(c){
+  c = c || document.getElementById("sidebar-content");
+  if(UI.tab!=="layers") return;
+  const cards = Object.values(Store.project.cards).sort((a,b)=>b.updatedAt.localeCompare(a.updatedAt));
+  c.innerHTML = `<div class="sb-section-title">All cards (${cards.length})</div>` +
+    (cards.length ? cards.map(card=>`
+      <div class="layer-row ${UI.selection&&UI.selection.id===card.id?'selected':''}" data-layer="${card.id}">
+        <span class="type-swatch" style="background:${card.color}"></span>
+        <span class="lname">${escapeHtml(card.title)}</span>
+        <button class="licon" data-act="vis" title="${card.visible===false?'Show':'Hide'}">${card.visible===false ? eyeOffSvg() : eyeSvg()}</button>
+        <button class="licon" data-act="lock" title="${card.locked?'Unlock':'Lock'}">${card.locked ? lockSvg() : unlockSvg()}</button>
+      </div>`).join("") : `<div class="hint">No cards yet.</div>`);
+  c.querySelectorAll(".layer-row").forEach(row=>{
+    const id = row.dataset.layer;
+    row.addEventListener("click", (e)=>{
+      if(e.target.closest("[data-act]")) return;
+      selectItem("card", id);
+      focusOnCard(id);
+    });
+    row.querySelector('[data-act="vis"]').onclick = (e)=>{
+      e.stopPropagation();
+      const card = Store.project.cards[id];
+      updateCard(id, {visible: card.visible===false ? true : false});
+      updateCardDom(card); commit(); renderLayers();
+    };
+    row.querySelector('[data-act="lock"]').onclick = (e)=>{
+      e.stopPropagation();
+      const card = Store.project.cards[id];
+      updateCard(id, {locked: !card.locked});
+      commit(); renderLayers();
+    };
+  });
+}
+function eyeSvg(){return `<svg class="icon" viewBox="0 0 24 24"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7Z"/><circle cx="12" cy="12" r="3"/></svg>`;}
+function eyeOffSvg(){return `<svg class="icon" viewBox="0 0 24 24"><path d="m2 2 20 20M9.9 5.2A10.6 10.6 0 0 1 12 5c7 0 11 7 11 7a17 17 0 0 1-3.6 4.3M6.5 6.6C3.4 8.6 1 12 1 12s4 7 11 7c1.5 0 2.9-.3 4.2-.8"/><path d="M14.1 14.1a3 3 0 1 1-4.2-4.2"/></svg>`;}
+function lockSvg(){return `<svg class="icon" viewBox="0 0 24 24"><rect x="4" y="10" width="16" height="10" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>`;}
+function unlockSvg(){return `<svg class="icon" viewBox="0 0 24 24"><rect x="4" y="10" width="16" height="10" rx="2"/><path d="M8 10V7a4 4 0 0 1 7.4-2"/></svg>`;}
+
+function renderTimeline(c){
+  c = c || document.getElementById("sidebar-content");
+  if(UI.tab!=="timeline") return;
+  const items = [];
+  Object.values(Store.project.cards).forEach(card=>{
+    (card.fields||[]).forEach(f=>{
+      if(f.type==="date" && f.value) items.push({date:f.value, title:card.title, label:f.label, cardId:card.id});
+    });
+  });
+  items.sort((a,b)=> a.date.localeCompare(b.date));
+  c.innerHTML = `<div class="sb-section-title">Timeline (${items.length})</div>` +
+    (items.length ? items.map(it=>`
+      <div class="tl-row" data-cardid="${it.cardId}">
+        <div class="tl-date">${escapeHtml(it.date)}</div>
+        <div><div class="tl-title">${escapeHtml(it.title)}</div><div class="hint" style="padding:0;">${escapeHtml(it.label)}</div></div>
+      </div>`).join("") : `<div class="hint">Add a Date field to any card to plot it on the timeline.</div>`);
+  c.querySelectorAll(".tl-row").forEach(row=>{
+    row.onclick = ()=>{ selectItem("card", row.dataset.cardid); focusOnCard(row.dataset.cardid); };
+  });
+}
+
+function renderCases(c){
+  c = c || document.getElementById("sidebar-content");
+  if(UI.tab!=="cases"){
+    // still refresh case tags/count elsewhere if needed
+  }
+  if(UI.tab!=="cases") return;
+  const cases = Object.values(Store.project.cases);
+  const countFor = id => Object.values(Store.project.cards).filter(c=>c.caseId===id).length;
+  c.innerHTML = `<div class="sb-section-title">Cases</div>
+    <div class="case-row ${!UI.activeCaseFilter?'active':''}" data-case="">
+      <div class="crow-top"><span class="cdot" style="background:#6f6458"></span><span class="cname">All cards</span><span class="ccount">${Object.keys(Store.project.cards).length}</span></div>
+    </div>
+    ${cases.map(k=>`
+      <div class="case-row ${UI.activeCaseFilter===k.id?'active':''}" data-case="${k.id}">
+        <div class="crow-top"><span class="cdot" style="background:${k.color}"></span><span class="cname">${escapeHtml(k.name)}</span><span class="ccount">${countFor(k.id)}</span></div>
+      </div>`).join("")}
+    <button class="sb-btn-full" id="new-case-btn" style="margin-top:8px;">+ New case</button>
+  `;
+  c.querySelectorAll(".case-row").forEach(row=>{
+    row.onclick = ()=>{
+      UI.activeCaseFilter = row.dataset.case || null;
+      renderCases(); renderAllCards();
+    };
+  });
+  document.getElementById("new-case-btn").onclick = ()=>{
+    const name = prompt("Case name:", "New Case");
+    if(!name) return;
+    const palette = ["#c1442e","#3d7dca","#4c9a6a","#d4a24c","#9463c4","#d97a3a"];
+    const k = newCase(name, palette[Object.keys(Store.project.cases).length % palette.length]);
+    Store.project.cases[k.id] = k;
+    commit(); renderCases();
+  };
+}
+
+function focusOnCard(id){
+  const card = Store.project.cards[id]; if(!card) return;
+  const rect = wrapEl().getBoundingClientRect();
+  UI.viewport.scale = clamp(UI.viewport.scale, 0.5, 1.2);
+  UI.viewport.x = rect.width/2 - (card.x+card.w/2)*UI.viewport.scale;
+  UI.viewport.y = rect.height/2 - (card.y+card.h/2)*UI.viewport.scale;
+  applyViewportTransform();
+}
+
+/* ---- card DOM interactions: drag / resize / select / connect ---- */
+let pendingUploadCardId = null;
+let pendingFieldTarget = null;
+
+function wireCardEvents(el, id){
+  const head = el.querySelector(".card-head");
+  const handle = el.querySelector(".resize-handle");
+  const portL = el.querySelector(".connect-port.left");
+  const portR = el.querySelector(".connect-port.right");
+
+  el.addEventListener("pointerdown", (e)=>{
+    if(UI.tool==="connect"){
+      e.stopPropagation();
+      handleConnectClick(id);
+      return;
+    }
+  });
+
+  [portL, portR].forEach(p=> p.addEventListener("pointerdown",(e)=>{
+    e.stopPropagation();
+    toggleConnectMode(true);
+    handleConnectClick(id);
+  }));
+
+  head.addEventListener("pointerdown", (e)=>{
+    if(UI.tool==="connect") return;
+    const card = Store.project.cards[id];
+    if(card.locked) { selectItem("card", id); return; }
+    e.stopPropagation();
+    selectItem("card", id);
+    const startX = e.clientX, startY = e.clientY;
+    const ox = card.x, oy = card.y;
+    let moved = false;
+    function onMove(ev){
+      const dx = (ev.clientX-startX)/UI.viewport.scale;
+      const dy = (ev.clientY-startY)/UI.viewport.scale;
+      if(Math.abs(dx)>1||Math.abs(dy)>1) moved = true;
+      let nx = ox+dx, ny = oy+dy;
+      if(UI.gridSnap){ nx = Math.round(nx/20)*20; ny = Math.round(ny/20)*20; }
+      card.x = nx; card.y = ny;
+      el.style.left = nx+"px"; el.style.top = ny+"px";
+      renderConnections();
+    }
+    function onUp(){
+      window.removeEventListener("pointermove", onMove);
+      window.removeEventListener("pointerup", onUp);
+      if(moved) commit();
+    }
+    window.addEventListener("pointermove", onMove);
+    window.addEventListener("pointerup", onUp);
+  });
+
+  handle.addEventListener("pointerdown",(e)=>{
+    e.stopPropagation();
+    const card = Store.project.cards[id];
+    if(card.locked) return;
+    selectItem("card", id);
+    const startX=e.clientX, startY=e.clientY;
+    const ow=card.w, oh=card.h;
+    function onMove(ev){
+      const dx=(ev.clientX-startX)/UI.viewport.scale, dy=(ev.clientY-startY)/UI.viewport.scale;
+      card.w = Math.max(160, ow+dx); card.h = Math.max(90, oh+dy);
+      el.style.width = card.w+"px"; el.style.height = card.h+"px";
+      renderConnections();
+    }
+    function onUp(){
+      window.removeEventListener("pointermove", onMove);
+      window.removeEventListener("pointerup", onUp);
+      commit();
+    }
+    window.addEventListener("pointermove", onMove);
+    window.addEventListener("pointerup", onUp);
+  });
+
+  el.addEventListener("click",(e)=>{
+    const thumb = e.target.closest(".card-thumb");
+    if(!thumb) return;
+    const card = Store.project.cards[id];
+    if(card.image && Store.assets[card.image]){
+      e.stopPropagation();
+      openLightbox(Store.assets[card.image], card.title);
+    }
+  });
+
+  el.addEventListener("dblclick", ()=>{
+    document.getElementById("props").classList.remove("collapsed");
+    selectItem("card", id);
+    setTimeout(()=> document.getElementById("pf-title")?.focus(), 30);
+  });
+}
+
+function handleConnectClick(cardId){
+  document.querySelectorAll(".card").forEach(el=>el.classList.remove("connect-source"));
+  if(!UI.connectFrom){
+    UI.connectFrom = cardId;
+    const el = UI.cardEls.get(cardId); if(el) el.classList.add("connect-source");
+    toast("Now click the card to link it to");
+  } else {
+    if(UI.connectFrom !== cardId){
+      const k = addConnection(UI.connectFrom, cardId, UI.connectColor);
+      if(k){ renderConnections(); toast("Thread created"); }
+    }
+    UI.connectFrom = cardId;
+    const el = UI.cardEls.get(cardId); if(el) el.classList.add("connect-source");
+  }
+}
+
+/* ---- canvas pan / zoom ---- */
+function wireCanvasEvents(){
+  const wrap = wrapEl();
+  let panning=false, sx=0, sy=0, ox=0, oy=0;
+
+  wrap.addEventListener("pointerdown",(e)=>{
+    if(e.target.closest(".card")) return;
+    if(e.target.closest("#conn-svg g")) return;
+    if(UI.tool==="connect"){ toggleConnectMode(false); return; }
+    clearSelection();
+    panning = true; wrap.classList.add("panning");
+    beginInteraction();
+    sx=e.clientX; sy=e.clientY; ox=UI.viewport.x; oy=UI.viewport.y;
+  });
+  window.addEventListener("pointermove",(e)=>{
+    if(!panning) return;
+    UI.viewport.x = ox+(e.clientX-sx);
+    UI.viewport.y = oy+(e.clientY-sy);
+    applyViewportTransform();
+  });
+  window.addEventListener("pointerup",()=>{ panning=false; wrap.classList.remove("panning"); endInteraction(); });
+
+  wrap.addEventListener("wheel",(e)=>{
+    e.preventDefault();
+    beginInteraction();
+    const rect = wrap.getBoundingClientRect();
+    const mx = e.clientX-rect.left, my = e.clientY-rect.top;
+    const worldX = (mx-UI.viewport.x)/UI.viewport.scale;
+    const worldY = (my-UI.viewport.y)/UI.viewport.scale;
+    const delta = -e.deltaY * 0.0015;
+    const newScale = clamp(UI.viewport.scale * (1+delta), 0.15, 3);
+    UI.viewport.scale = newScale;
+    UI.viewport.x = mx - worldX*newScale;
+    UI.viewport.y = my - worldY*newScale;
+    applyViewportTransform();
+    endInteraction(180);
+  }, {passive:false});
+}
+
+function zoomBy(factor){
+  beginInteraction();
+  const rect = wrapEl().getBoundingClientRect();
+  const cx = rect.width/2, cy = rect.height/2;
+  const worldX = (cx-UI.viewport.x)/UI.viewport.scale;
+  const worldY = (cy-UI.viewport.y)/UI.viewport.scale;
+  UI.viewport.scale = clamp(UI.viewport.scale*factor, 0.15, 3);
+  UI.viewport.x = cx - worldX*UI.viewport.scale;
+  UI.viewport.y = cy - worldY*UI.viewport.scale;
+  applyViewportTransform();
+  endInteraction(180);
+}
+function zoomFit(){
+  beginInteraction();
+  const cards = Object.values(Store.project.cards);
+  const rect = wrapEl().getBoundingClientRect();
+  if(!cards.length){ UI.viewport = {x: rect.width/2-400, y: rect.height/2-300, scale:1}; applyViewportTransform(); endInteraction(180); return; }
+  let minX=Infinity,minY=Infinity,maxX=-Infinity,maxY=-Infinity;
+  cards.forEach(c=>{ minX=Math.min(minX,c.x); minY=Math.min(minY,c.y); maxX=Math.max(maxX,c.x+c.w); maxY=Math.max(maxY,c.y+c.h); });
+  const pad=100;
+  minX-=pad;minY-=pad;maxX+=pad;maxY+=pad;
+  const scale = clamp(Math.min(rect.width/(maxX-minX), rect.height/(maxY-minY)), 0.15, 1.4);
+  UI.viewport.scale = scale;
+  UI.viewport.x = rect.width/2 - (minX+maxX)/2*scale;
+  UI.viewport.y = rect.height/2 - (minY+maxY)/2*scale;
+  applyViewportTransform();
+  endInteraction(180);
+}
+
+/* ---- search ---- */
+function wireSearch(){
+  const input = document.getElementById("search");
+  input.addEventListener("input", ()=>{
+    UI.search = input.value.trim();
+    renderAllCards();
+    const count = UI.search ? document.querySelectorAll(".card.match").length : 0;
+    document.getElementById("search-count").textContent = UI.search ? (count+" match"+(count!==1?"es":"")) : "";
+  });
+  input.addEventListener("keydown",(e)=>{
+    if(e.key==="Enter"){
+      const first = document.querySelector(".card.match");
+      if(first) focusOnCard(first.dataset.id);
+    }
+    if(e.key==="Escape"){ input.value=""; UI.search=""; renderAllCards(); document.getElementById("search-count").textContent=""; input.blur(); }
+  });
+}
+
+/* ---- menus / modals ---- */
+function closeMenus(){ document.querySelectorAll(".menu-popover").forEach(m=>m.remove()); }
+function openNewCardMenu(anchorEl){
+  closeMenus();
+  const rect = anchorEl.getBoundingClientRect();
+  const menu = document.createElement("div");
+  menu.className = "menu-popover";
+  menu.style.left = rect.left+"px"; menu.style.top = (rect.bottom+6)+"px";
+  menu.innerHTML = Object.keys(CARD_TYPES).map(t=>`<div class="menu-item" data-t="${t}"><span class="type-swatch" style="background:${CARD_TYPES[t].color}"></span>${CARD_TYPES[t].label}</div>`).join("");
+  document.body.appendChild(menu);
+  menu.querySelectorAll(".menu-item").forEach(mi=> mi.onclick = ()=>{ addCard(mi.dataset.t); closeMenus(); });
+  setTimeout(()=> document.addEventListener("pointerdown", closeMenusOnce), 10);
+}
+function closeMenusOnce(e){
+  if(!e.target.closest(".menu-popover")){ closeMenus(); document.removeEventListener("pointerdown", closeMenusOnce); }
+}
+
+function openExportMenu(anchorEl){
+  closeMenus();
+  const rect = anchorEl.getBoundingClientRect();
+  const menu = document.createElement("div");
+  menu.className = "menu-popover";
+  menu.style.right = (window.innerWidth-rect.right)+"px"; menu.style.left="auto"; menu.style.top = (rect.bottom+6)+"px";
+  menu.innerHTML = `
+    <div class="menu-item" data-a="json">Export as JSON</div>
+    <div class="menu-item" data-a="png">Export as PNG</div>
+    <div class="menu-item" data-a="pdf">Export as PDF (print)</div>
+  `;
+  document.body.appendChild(menu);
+  menu.querySelector('[data-a="json"]').onclick = ()=>{ exportJSON(); closeMenus(); };
+  menu.querySelector('[data-a="png"]').onclick = ()=>{ exportPNG(); closeMenus(); };
+  menu.querySelector('[data-a="pdf"]').onclick = ()=>{ exportPDF(); closeMenus(); };
+  setTimeout(()=> document.addEventListener("pointerdown", closeMenusOnce), 10);
+}
+
+function openSettingsMenu(anchorEl){
+  closeMenus();
+  const rect = anchorEl.getBoundingClientRect();
+  const menu = document.createElement("div");
+  menu.className = "menu-popover";
+  menu.style.right = (window.innerWidth-rect.right)+"px"; menu.style.left="auto"; menu.style.top = (rect.bottom+6)+"px";
+  menu.style.minWidth = "210px";
+  menu.innerHTML = `
+    <div class="menu-item" id="set-snap"><svg class="icon" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>${UI.gridSnap?"✓ ":""}Snap to grid</div>
+    <div class="menu-item" id="set-toggle-sidebar"><svg class="icon" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 3v18"/></svg>Toggle sidebar</div>
+    <div class="menu-item" id="set-toggle-props"><svg class="icon" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M15 3v18"/></svg>Toggle properties</div>
+    <div class="menu-item" id="set-clear" style="color:#e0685a;"><svg class="icon" viewBox="0 0 24 24"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0-1 14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2L4 6"/></svg>Clear board…</div>
+  `;
+  document.body.appendChild(menu);
+  menu.querySelector("#set-snap").onclick = ()=>{ UI.gridSnap=!UI.gridSnap; closeMenus(); };
+  menu.querySelector("#set-toggle-sidebar").onclick = ()=>{ document.getElementById("sidebar").classList.toggle("collapsed"); closeMenus(); };
+  menu.querySelector("#set-toggle-props").onclick = ()=>{ document.getElementById("props").classList.toggle("collapsed"); closeMenus(); };
+  menu.querySelector("#set-clear").onclick = ()=>{
+    if(confirm("Clear the entire board? This cannot be undone once saved.")){
+      collectAssetIds(Store.project).forEach(id=>deleteAsset(id));
+      Store.project.cards={}; Store.project.connections={};
+      UI.selection=null; commit(); buildWorldFromScratch(); renderProps(); renderLayers();
+      toast("Board cleared");
+    }
+    closeMenus();
+  };
+  setTimeout(()=> document.addEventListener("pointerdown", closeMenusOnce), 10);
+}
+
+function toast(msg){
+  const t = document.getElementById("toast");
+  t.textContent = msg;
+  t.classList.add("show");
+  clearTimeout(toast._tm);
+  toast._tm = setTimeout(()=> t.classList.remove("show"), 2200);
+}
+
+/* ---- photo lightbox: click a card's photo to view it enlarged ---- */
+function openLightbox(src, alt){
+  if(!src) return;
+  const box = document.getElementById("lightbox");
+  const img = document.getElementById("lightbox-img");
+  img.src = src;
+  img.alt = alt||"";
+  box.classList.add("show");
+}
+function closeLightbox(){
+  const box = document.getElementById("lightbox");
+  box.classList.remove("show");
+  document.getElementById("lightbox-img").src = "";
+}
+function wireLightbox(){
+  const box = document.getElementById("lightbox");
+  box.addEventListener("click",(e)=>{ if(e.target===box) closeLightbox(); });
+  document.getElementById("lightbox-close").addEventListener("click", closeLightbox);
+}
+
+/* ---- keyboard shortcuts ---- */
+function wireKeyboard(){
+  window.addEventListener("keydown",(e)=>{
+    const tag = (e.target.tagName||"").toLowerCase();
+    const typing = tag==="input"||tag==="textarea"||e.target.isContentEditable;
+    if((e.ctrlKey||e.metaKey) && e.key.toLowerCase()==="z" && !e.shiftKey){ e.preventDefault(); undo(); return; }
+    if((e.ctrlKey||e.metaKey) && (e.key.toLowerCase()==="y" || (e.key.toLowerCase()==="z"&&e.shiftKey))){ e.preventDefault(); redo(); return; }
+    if(typing) return;
+    if(e.key==="Escape"){
+      const lb = document.getElementById("lightbox");
+      if(lb.classList.contains("show")){ closeLightbox(); return; }
+      toggleConnectMode(false); clearSelection();
+    }
+    if((e.key==="Delete"||e.key==="Backspace") && UI.selection){
+      if(UI.selection.kind==="card") deleteCard(UI.selection.id);
+      else deleteConnection(UI.selection.id);
+    }
+    if(e.key.toLowerCase()==="f" && !e.ctrlKey && !e.metaKey) zoomFit();
+    if((e.ctrlKey||e.metaKey) && e.key==="f"){ e.preventDefault(); document.getElementById("search").focus(); }
+  });
+}
+
+/* ---- file input wiring (image / attach / import) ---- */
+const MAX_UPLOAD_BYTES = 3.5 * 1024 * 1024; // ~3.5MB raw -> fits under the 5MB base64 storage-key cap
+
+function wireFileInputs(){
+  document.getElementById("file-image").addEventListener("change",(e)=>{
+    const file = e.target.files[0]; if(!file) return;
+    if(file.size > MAX_UPLOAD_BYTES){ toast("Image too large — keep it under 3.5MB."); e.target.value=""; return; }
+    const reader = new FileReader();
+    reader.onload = async ()=>{
+      const dataUrl = reader.result;
+      const assetId = await saveAsset(dataUrl);
+      if(pendingFieldTarget){
+        const card = Store.project.cards[pendingFieldTarget.cardId];
+        const f = card.fields.find(x=>x.id===pendingFieldTarget.fieldId);
+        if(f) f.value = assetId;
+        pendingFieldTarget = null;
+        commit(); renderProps();
+      } else if(pendingUploadCardId){
+        updateCard(pendingUploadCardId, {image: assetId});
+        updateCardDom(Store.project.cards[pendingUploadCardId]);
+        commit(); renderProps();
+      }
+      e.target.value = "";
+    };
+    reader.readAsDataURL(file);
+  });
+  document.getElementById("file-attach").addEventListener("change",(e)=>{
+    const file = e.target.files[0]; if(!file) return;
+    if(file.size > MAX_UPLOAD_BYTES){ toast("File too large — keep it under 3.5MB."); e.target.value=""; return; }
+    const reader = new FileReader();
+    reader.onload = async ()=>{
+      const dataUrl = reader.result;
+      const assetId = await saveAsset(dataUrl);
+      if(pendingFieldTarget){
+        const card = Store.project.cards[pendingFieldTarget.cardId];
+        const f = card.fields.find(x=>x.id===pendingFieldTarget.fieldId);
+        if(f) f.value = {name:file.name, size:file.size, assetId};
+        pendingFieldTarget = null;
+        commit(); renderProps();
+      } else if(pendingUploadCardId){
+        const card = Store.project.cards[pendingUploadCardId];
+        card.attachments.push({id:uid("att"), name:file.name, size:file.size, assetId});
+        commit(); renderProps(); updateCardDom(card);
+      }
+      pendingUploadCardId = null;
+      e.target.value = "";
+    };
+    reader.readAsDataURL(file);
+  });
+  document.getElementById("file-import").addEventListener("change",(e)=>{
+    const file = e.target.files[0]; if(!file) return;
+    importJSONFile(file);
+    e.target.value = "";
+  });
+}
+
+/* ---- global render ---- */
+function renderAll(){
+  applyViewportTransform();
+  renderAllCards();
+  renderConnections();
+  renderProps();
+  renderSidebar();
+  toggleEmptyHint();
+}
+
+/* ============================== INIT ============================== */
+async function init(){
+  wireCanvasEvents();
+  wireSearch();
+  wireKeyboard();
+  wireFileInputs();
+  wireLightbox();
+
+  document.getElementById("btn-newcard").addEventListener("click",(e)=> openNewCardMenu(e.currentTarget));
+  document.getElementById("btn-undo").addEventListener("click", undo);
+  document.getElementById("btn-redo").addEventListener("click", redo);
+  document.getElementById("btn-zoom-in").addEventListener("click", ()=>zoomBy(1.2));
+  document.getElementById("btn-zoom-out").addEventListener("click", ()=>zoomBy(1/1.2));
+  document.getElementById("btn-zoom-fit").addEventListener("click", zoomFit);
+  document.getElementById("btn-import").addEventListener("click", ()=> document.getElementById("file-import").click());
+  document.getElementById("btn-export").addEventListener("click",(e)=> openExportMenu(e.currentTarget));
+  document.getElementById("btn-settings").addEventListener("click",(e)=> openSettingsMenu(e.currentTarget));
+  document.getElementById("props-close").addEventListener("click", ()=> document.getElementById("props").classList.add("collapsed"));
+
+  document.querySelectorAll(".stab").forEach(tab=>{
+    tab.addEventListener("click", ()=>{
+      document.querySelectorAll(".stab").forEach(t=>t.classList.remove("active"));
+      tab.classList.add("active");
+      UI.tab = tab.dataset.tab;
+      renderSidebar();
+    });
+  });
+
+  const saved = await loadProject();
+  Store.project = saved || emptyProject();
+  Store.history = [deepClone(Store.project)];
+  Store.historyIndex = 0;
+  updateUndoRedoButtons();
+
+  await preloadAssets(Store.project);
+
+  buildWorldFromScratch();
+  renderAll();
+  zoomFit();
+  setSaveState("saved");
+
+  if(!saved) scheduleSave();
+}
+
+window.addEventListener("DOMContentLoaded", init);
+
+})();
+</script>
+</body>
+</html>
