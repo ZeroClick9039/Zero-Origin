@@ -6,44 +6,44 @@
 <title>Zero Origin — Investigation Board</title>
 <style>
   :root{
-    --bg-deep:#08090b;
-    --bg-panel:#0d0f12;
-    --bg-panel-2:#121418;
-    --bg-card:#15181d;
-    --bg-card-hover:#1b1f26;
-    --border:#262b33;
-    --border-soft:#1c2028;
-    --text-primary:#e8ecf2;
-    --text-muted:#8b93a3;
-    --text-dim:#5a6272;
-    --accent-red:#3d7dca;
-    --accent-amber:#4f9bef;
-    --accent-thread:#3d7dca;
-    --pin-shadow:0 1px 2px rgba(0,0,0,.7);
+    --bg-deep:#04070a;
+    --bg-panel:#070c0b;
+    --bg-panel-2:#0a1210;
+    --bg-card:#0e1714;
+    --bg-card-hover:#132019;
+    --border:#1c2f27;
+    --border-soft:#132019;
+    --text-primary:#d7ffe9;
+    --text-muted:#6fae8c;
+    --text-dim:#3f6552;
+    --accent-red:#00e5ff;
+    --accent-amber:#39ff88;
+    --accent-thread:#00e5ff;
+    --pin-shadow:0 0 6px rgba(0,229,255,.5);
     --radius-card:2px;
     --mono: ui-monospace, "SF Mono", "Cascadia Mono", Menlo, Consolas, monospace;
     --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, sans-serif;
-    --thread-red:#c1442e;
-    --thread-blue:#4f9bef;
-    --thread-green:#4c9a6a;
-    --thread-yellow:#d4b23c;
-    --thread-purple:#9463c4;
-    --thread-orange:#d97a3a;
-    --thread-black:#5a6272;
+    --thread-red:#ff3b5c;
+    --thread-blue:#00e5ff;
+    --thread-green:#39ff88;
+    --thread-yellow:#e8ff4f;
+    --thread-purple:#b967ff;
+    --thread-orange:#ff9d1a;
+    --thread-black:#6fae8c;
   }
-  /* corner-bracket frame accent, dossier-cover motif */
-  .bracket-corner{position:absolute;width:14px;height:14px;border-color:var(--accent-amber);opacity:.55;pointer-events:none;}
+  /* corner-bracket frame accent, terminal-readout motif */
+  .bracket-corner{position:absolute;width:14px;height:14px;border-color:var(--accent-amber);opacity:.6;pointer-events:none;filter:drop-shadow(0 0 3px rgba(57,255,136,.5));}
   .bracket-corner.tl{top:6px;left:6px;border-top:1.5px solid;border-left:1.5px solid;}
   .bracket-corner.br{bottom:6px;right:6px;border-bottom:1.5px solid;border-right:1.5px solid;}
   *{box-sizing:border-box;}
   html,body{height:100%;margin:0;background:var(--bg-deep);color:var(--text-primary);font-family:var(--sans);overflow:hidden;-webkit-font-smoothing:antialiased;}
-  ::selection{background:rgba(193,68,46,.35);}
+  ::selection{background:rgba(0,229,255,.3);}
   button{font-family:inherit;}
   input,select,textarea{font-family:inherit;color:var(--text-primary);}
   ::-webkit-scrollbar{width:8px;height:8px;}
   ::-webkit-scrollbar-track{background:transparent;}
-  ::-webkit-scrollbar-thumb{background:#3a332c;border-radius:4px;}
-  ::-webkit-scrollbar-thumb:hover{background:#4a4238;}
+  ::-webkit-scrollbar-thumb{background:#1c2f27;border-radius:4px;}
+  ::-webkit-scrollbar-thumb:hover{background:#2f5443;}
 
   #app{
     display:grid;
@@ -54,7 +54,7 @@
   /* ===================== TOOLBAR ===================== */
   #toolbar{
     display:flex;align-items:center;gap:14px;
-    background:linear-gradient(180deg,#101216,#0a0b0d);
+    background:linear-gradient(180deg,#0b1210,#050807);
     border-bottom:1px solid var(--border);
     padding:0 14px;
     z-index:50;
@@ -64,6 +64,7 @@
   .brand{
     font-family:var(--mono);font-weight:700;letter-spacing:.14em;font-size:13px;
     color:var(--text-primary);white-space:nowrap;display:flex;align-items:center;gap:8px;
+    text-shadow:0 0 10px rgba(0,229,255,.35);
   }
   .brand .dot{width:8px;height:8px;border-radius:50%;background:var(--accent-red);box-shadow:0 0 8px var(--accent-red);}
   .tb-sep{width:1px;align-self:stretch;background:var(--border);margin:10px 2px;}
@@ -76,7 +77,7 @@
   }
   .tb-btn:hover{background:var(--bg-card-hover);color:var(--text-primary);}
   .tb-btn:active{transform:translateY(1px);}
-  .tb-btn.active{background:rgba(193,68,46,.15);color:var(--accent-red);border-color:rgba(193,68,46,.35);}
+  .tb-btn.active{background:rgba(0,229,255,.13);color:var(--accent-red);border-color:rgba(0,229,255,.35);}
   .tb-btn:disabled{opacity:.35;cursor:not-allowed;}
   .tb-btn:disabled:hover{background:transparent;color:var(--text-muted);}
   .icon{width:15px;height:15px;flex:none;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;}
@@ -90,7 +91,7 @@
     border-radius:5px;padding:7px 10px 7px 32px;font-size:12.5px;outline:none;color:var(--text-primary);
   }
   #search::placeholder{color:var(--text-dim);}
-  #search:focus{border-color:rgba(193,68,46,.5);}
+  #search:focus{border-color:rgba(0,229,255,.5);box-shadow:0 0 0 2px rgba(0,229,255,.12);}
   #search-count{position:absolute;right:8px;font-size:10.5px;color:var(--text-dim);font-family:var(--mono);}
 
   .zoom-group{display:flex;align-items:center;gap:2px;background:var(--bg-panel-2);border:1px solid var(--border-soft);border-radius:5px;padding:2px;}
@@ -142,7 +143,7 @@
     display:flex;align-items:center;gap:7px;padding:6px 7px;border-radius:4px;cursor:pointer;font-size:12px;margin-bottom:2px;
   }
   .layer-row:hover{background:var(--bg-card);}
-  .layer-row.selected{background:rgba(212,162,76,.13);}
+  .layer-row.selected{background:rgba(57,255,136,.1);}
   .layer-row .type-swatch{flex:none;}
   .layer-row .lname{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--text-primary);}
   .layer-row .licon{background:none;border:none;color:var(--text-dim);cursor:pointer;padding:2px;display:flex;}
@@ -157,7 +158,7 @@
 
   .case-row{padding:9px 10px;border-radius:4px;cursor:pointer;margin-bottom:6px;border:1px solid var(--border-soft);background:var(--bg-card);}
   .case-row:hover{border-color:var(--border);}
-  .case-row.active{border-color:var(--accent-amber);background:rgba(212,162,76,.08);}
+  .case-row.active{border-color:var(--accent-amber);background:rgba(57,255,136,.08);}
   .case-row .crow-top{display:flex;align-items:center;gap:7px;}
   .case-row .cdot{width:9px;height:9px;border-radius:50%;flex:none;}
   .case-row .cname{font-size:12.5px;color:var(--text-primary);flex:1;}
@@ -177,8 +178,10 @@
   #corkboard{
     position:absolute;inset:0;
     background-image:
-      radial-gradient(circle at 1px 1px, rgba(255,255,255,0.035) 1px, transparent 0);
-    background-size:26px 26px;
+      repeating-linear-gradient(180deg, rgba(57,255,136,0.025) 0px, rgba(57,255,136,0.025) 1px, transparent 1px, transparent 3px),
+      linear-gradient(rgba(0,229,255,0.045) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,229,255,0.045) 1px, transparent 1px);
+    background-size:auto, 52px 52px, 52px 52px;
     background-color:var(--bg-deep);
   }
   #world{position:absolute;left:0;top:0;transform-origin:0 0;}
@@ -193,11 +196,13 @@
     box-shadow:0 3px 10px rgba(0,0,0,.45), 0 1px 0 rgba(255,255,255,.02) inset;
     display:flex;flex-direction:column;overflow:hidden;user-select:none;
     transition:box-shadow .15s, border-color .15s, opacity .15s;
+    cursor:grab;
   }
-  .card:hover{border-color:#4a4238;}
-  .card.selected{border-color:var(--accent-amber);box-shadow:0 0 0 1px var(--accent-amber),0 6px 18px rgba(0,0,0,.5);}
+  .card:active{cursor:grabbing;}
+  .card:hover{border-color:#2f5443;}
+  .card.selected{border-color:var(--accent-amber);box-shadow:0 0 0 1px var(--accent-amber),0 0 14px rgba(57,255,136,.35),0 6px 18px rgba(0,0,0,.5);}
   .card.dimmed{opacity:.22;}
-  .card.match{box-shadow:0 0 0 2px var(--accent-red),0 6px 18px rgba(0,0,0,.5);}
+  .card.match{box-shadow:0 0 0 2px var(--accent-red),0 0 16px rgba(0,229,255,.4),0 6px 18px rgba(0,0,0,.5);}
   .card.hidden-layer{display:none;}
   .card .pin{
     position:absolute;top:-6px;left:50%;transform:translateX(-50%);width:11px;height:11px;border-radius:50%;
@@ -223,6 +228,22 @@
   .connect-port.left{left:-6px;}
   .connect-port.right{right:-6px;}
   .card.connect-source{box-shadow:0 0 0 2px var(--accent-red),0 6px 18px rgba(0,0,0,.5);}
+
+  .card-fields-popover{
+    position:absolute;z-index:40;background:var(--bg-panel-2);border:1px solid var(--border);border-radius:5px;
+    padding:5px;box-shadow:0 10px 26px rgba(0,0,0,.55),0 0 0 1px rgba(0,229,255,.08);
+    opacity:0;pointer-events:none;transition:opacity .12s;
+  }
+  .card-fields-popover.visible{opacity:1;pointer-events:auto;}
+  .card-fields-popover .cfp-title{font-family:var(--mono);font-size:9px;letter-spacing:.08em;text-transform:uppercase;color:var(--text-dim);padding:4px 7px 5px;}
+  .cfp-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:6px 7px;border-radius:4px;cursor:pointer;font-family:var(--mono);}
+  .cfp-row:hover{background:rgba(0,229,255,.08);}
+  .cfp-row.copied{background:rgba(57,255,136,.14);}
+  .cfp-label{font-size:10px;color:var(--text-dim);white-space:nowrap;}
+  .cfp-value{font-size:11.5px;color:var(--text-primary);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:160px;text-align:right;}
+  .cfp-row.copied .cfp-value{color:var(--accent-amber);}
+  .cfp-copy-icon{width:11px;height:11px;flex:none;stroke:var(--text-dim);fill:none;stroke-width:1.8;opacity:0;transition:opacity .12s;margin-left:4px;}
+  .cfp-row:hover .cfp-copy-icon{opacity:1;stroke:var(--accent-red);}
 
   #zoom-pct-floating{position:absolute;left:14px;bottom:12px;font-family:var(--mono);font-size:10.5px;color:var(--text-dim);background:rgba(0,0,0,.35);padding:4px 8px;border-radius:4px;pointer-events:none;}
   #minimap-hint{position:absolute;right:14px;bottom:12px;font-family:var(--mono);font-size:10px;color:var(--text-dim);background:rgba(0,0,0,.35);padding:4px 8px;border-radius:4px;pointer-events:none;}
@@ -252,7 +273,7 @@
     width:100%;background:var(--bg-panel-2);border:1px solid var(--border-soft);border-radius:4px;
     padding:7px 9px;font-size:12.5px;color:var(--text-primary);outline:none;
   }
-  .pf-input:focus,.pf-select:focus,.pf-textarea:focus{border-color:rgba(212,162,76,.5);}
+  .pf-input:focus,.pf-select:focus,.pf-textarea:focus{border-color:rgba(57,255,136,.5);box-shadow:0 0 0 2px rgba(57,255,136,.1);}
   .pf-textarea{resize:vertical;min-height:64px;line-height:1.5;}
   .pf-row{display:flex;gap:8px;}
   .pf-row > *{flex:1;}
@@ -267,7 +288,7 @@
   .btn-sm{background:var(--bg-card);border:1px solid var(--border-soft);color:var(--text-muted);padding:6px 10px;border-radius:4px;cursor:pointer;font-size:11px;}
   .btn-sm:hover{border-color:var(--border);color:var(--text-primary);}
   .btn-danger{color:#d97a6a;}
-  .btn-danger:hover{border-color:#c1442e;color:#e0685a;}
+  .btn-danger:hover{border-color:#ff3b5c;color:#ff6b82;}
 
   .field-row{border:1px solid var(--border-soft);border-radius:4px;padding:8px;margin-bottom:8px;background:var(--bg-panel-2);}
   .field-row-top{display:flex;gap:6px;margin-bottom:6px;}
@@ -304,8 +325,8 @@
   .modal-head{padding:14px 16px;border-bottom:1px solid var(--border);font-size:13px;font-weight:600;display:flex;justify-content:space-between;align-items:center;}
   .modal-body{padding:16px;}
   .modal-foot{padding:12px 16px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:8px;}
-  .btn-primary{background:var(--accent-red);border:1px solid var(--accent-red);color:#fff;padding:7px 14px;border-radius:4px;cursor:pointer;font-size:12px;font-weight:600;}
-  .btn-primary:hover{background:#2f66a8;}
+  .btn-primary{background:var(--accent-red);border:1px solid var(--accent-red);color:#03181c;padding:7px 14px;border-radius:4px;cursor:pointer;font-size:12px;font-weight:600;}
+  .btn-primary:hover{background:#00b8cc;}
   .save-card-row{position:sticky;top:0;z-index:2;background:var(--bg-panel);margin:-14px -14px 12px;padding:10px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;}
   .save-card-row .btn-primary{flex:1;display:flex;align-items:center;justify-content:center;gap:6px;}
   .save-card-row .save-hint{font-family:var(--mono);font-size:9.5px;color:var(--text-dim);white-space:nowrap;}
@@ -462,18 +483,18 @@
 /* ============================== 1. DOMAIN ============================== */
 
 const CARD_TYPES = {
-  person:       { label: "Person",       color: "#3d7dca" },
-  evidence:     { label: "Evidence",     color: "#d4a24c" },
-  place:        { label: "Place",        color: "#4c9a6a" },
-  vehicle:      { label: "Vehicle",      color: "#9463c4" },
-  document:     { label: "Document",     color: "#9a8f7f" },
-  organization: { label: "Organization", color: "#c1442e" },
-  custom:       { label: "Custom",       color: "#3aa0a0" },
+  person:       { label: "Person",       color: "#00e5ff" },
+  evidence:     { label: "Evidence",     color: "#e8ff4f" },
+  place:        { label: "Place",        color: "#39ff88" },
+  vehicle:      { label: "Vehicle",      color: "#b967ff" },
+  document:     { label: "Document",     color: "#6fae8c" },
+  organization: { label: "Organization", color: "#ff3b5c" },
+  custom:       { label: "Custom",       color: "#00ffc2" },
 };
 
 const THREAD_COLORS = {
-  red:"#c1442e", blue:"#3d7dca", green:"#4c9a6a", yellow:"#d4b23c",
-  purple:"#9463c4", orange:"#d97a3a", black:"#8a8177"
+  red:"#ff3b5c", blue:"#00e5ff", green:"#39ff88", yellow:"#e8ff4f",
+  purple:"#b967ff", orange:"#ff9d1a", black:"#6fae8c"
 };
 
 const FIELD_TYPES = ["text","number","date","checkbox","link","richtext","image","file"];
@@ -509,7 +530,7 @@ function newConnection(fromId, toId, color){
   return { id: uid("conn"), from: fromId, to: toId, color: color||"red", label: "", style: "solid" };
 }
 function newCase(name, color){
-  return { id: uid("case"), name: name||"Untitled Case", color: color||"#c1442e", createdAt: nowIso() };
+  return { id: uid("case"), name: name||"Untitled Case", color: color||"#ff3b5c", createdAt: nowIso() };
 }
 
 function emptyProject(){
@@ -519,7 +540,7 @@ function emptyProject(){
 function seedProject(){
   const p = emptyProject();
   p.name = "The Missing Ledger";
-  const c1 = newCase("The Missing Ledger", "#c1442e");
+  const c1 = newCase("The Missing Ledger", "#ff3b5c");
   p.cases[c1.id] = c1;
 
   const a = newCard("person", -260, -60);
@@ -718,10 +739,11 @@ function exportPNG(){
   const canvas = document.createElement("canvas");
   canvas.width = w; canvas.height = h;
   const ctx = canvas.getContext("2d");
-  ctx.fillStyle = "#121011"; ctx.fillRect(0,0,w,h);
-  // dot texture
-  ctx.fillStyle = "rgba(255,255,255,0.035)";
-  for(let x=0;x<w;x+=26){ for(let y=0;y<h;y+=26){ ctx.fillRect(x,y,1,1); } }
+  ctx.fillStyle = "#04070a"; ctx.fillRect(0,0,w,h);
+  // grid texture
+  ctx.strokeStyle = "rgba(0,229,255,0.05)"; ctx.lineWidth = 1;
+  for(let x=0;x<w;x+=52){ ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x,h); ctx.stroke(); }
+  for(let y=0;y<h;y+=52){ ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(w,y); ctx.stroke(); }
 
   // connections
   Object.values(Store.project.connections).forEach(k=>{
@@ -739,17 +761,17 @@ function exportPNG(){
   Object.values(Store.project.cards).forEach(c=>{
     if(c.visible===false) return;
     const x=c.x-minX, y=c.y-minY;
-    ctx.fillStyle = "#241f1b";
+    ctx.fillStyle = "#0e1714";
     roundRect(ctx,x,y,c.w,c.h,4); ctx.fill();
-    ctx.strokeStyle = "#3a332c"; ctx.lineWidth=1;
+    ctx.strokeStyle = "#1c2f27"; ctx.lineWidth=1;
     roundRect(ctx,x,y,c.w,c.h,4); ctx.stroke();
-    ctx.fillStyle = c.color || "#c1442e";
+    ctx.fillStyle = c.color || "#ff3b5c";
     ctx.beginPath(); ctx.arc(x+c.w/2, y, 5, 0, Math.PI*2); ctx.fill();
-    ctx.fillStyle = "#ece4d6"; ctx.font = "600 13px sans-serif";
+    ctx.fillStyle = "#d7ffe9"; ctx.font = "600 13px sans-serif";
     ctx.fillText(truncate(c.title,26), x+12, y+24);
-    ctx.fillStyle = "#a89a86"; ctx.font = "10px monospace";
+    ctx.fillStyle = "#6fae8c"; ctx.font = "10px monospace";
     ctx.fillText((CARD_TYPES[c.type]||{label:c.type}).label.toUpperCase(), x+12, y+40);
-    ctx.fillStyle = "#a89a86"; ctx.font = "11px sans-serif";
+    ctx.fillStyle = "#6fae8c"; ctx.font = "11px sans-serif";
     wrapText(ctx, c.notes||"", x+12, y+58, c.w-24, 14, 3);
   });
   canvas.toBlob(blob => { downloadBlob(blob, sanitizeFilename(Store.project.name)+".png"); toast("Board exported as PNG"); });
@@ -1124,7 +1146,7 @@ function renderCardProps(body, card){
     <div class="pf-group">
       <label class="pf-label">Pin Color</label>
       <div class="color-row" id="pf-color-row">
-        ${["#c1442e","#3d7dca","#4c9a6a","#d4a24c","#9463c4","#d97a3a","#9a8f7f","#e8dfce"].map(hex=>`<div class="color-dot ${card.color===hex?'active':''}" data-color="${hex}" style="background:${hex}"></div>`).join("")}
+        ${["#ff3b5c","#00e5ff","#39ff88","#e8ff4f","#b967ff","#ff9d1a","#6fae8c","#d7ffe9"].map(hex=>`<div class="color-dot ${card.color===hex?'active':''}" data-color="${hex}" style="background:${hex}"></div>`).join("")}
       </div>
     </div>
     <div class="pf-group">
@@ -1462,7 +1484,7 @@ function renderCases(c){
   const countFor = id => Object.values(Store.project.cards).filter(c=>c.caseId===id).length;
   c.innerHTML = `<div class="sb-section-title">Cases</div>
     <div class="case-row ${!UI.activeCaseFilter?'active':''}" data-case="">
-      <div class="crow-top"><span class="cdot" style="background:#6f6458"></span><span class="cname">All cards</span><span class="ccount">${Object.keys(Store.project.cards).length}</span></div>
+      <div class="crow-top"><span class="cdot" style="background:#3f6552"></span><span class="cname">All cards</span><span class="ccount">${Object.keys(Store.project.cards).length}</span></div>
     </div>
     ${cases.map(k=>`
       <div class="case-row ${UI.activeCaseFilter===k.id?'active':''}" data-case="${k.id}">
@@ -1479,7 +1501,7 @@ function renderCases(c){
   document.getElementById("new-case-btn").onclick = ()=>{
     const name = prompt("Case name:", "New Case");
     if(!name) return;
-    const palette = ["#c1442e","#3d7dca","#4c9a6a","#d4a24c","#9463c4","#d97a3a"];
+    const palette = ["#ff3b5c","#00e5ff","#39ff88","#e8ff4f","#b967ff","#ff9d1a"];
     const k = newCase(name, palette[Object.keys(Store.project.cases).length % palette.length]);
     Store.project.cases[k.id] = k;
     commit(); renderCases();
@@ -1500,7 +1522,6 @@ let pendingUploadCardId = null;
 let pendingFieldTarget = null;
 
 function wireCardEvents(el, id){
-  const head = el.querySelector(".card-head");
   const handle = el.querySelector(".resize-handle");
   const portL = el.querySelector(".connect-port.left");
   const portR = el.querySelector(".connect-port.right");
@@ -1519,11 +1540,12 @@ function wireCardEvents(el, id){
     handleConnectClick(id);
   }));
 
-  head.addEventListener("pointerdown", (e)=>{
+  el.addEventListener("pointerdown", (e)=>{
     if(UI.tool==="connect") return;
     const card = Store.project.cards[id];
     if(card.locked) { selectItem("card", id); return; }
     e.stopPropagation();
+    hideFieldsPopoverImmediate();
     selectItem("card", id);
     const startX = e.clientX, startY = e.clientY;
     const ox = card.x, oy = card.y;
@@ -1551,6 +1573,7 @@ function wireCardEvents(el, id){
     e.stopPropagation();
     const card = Store.project.cards[id];
     if(card.locked) return;
+    hideFieldsPopoverImmediate();
     selectItem("card", id);
     const startX=e.clientX, startY=e.clientY;
     const ow=card.w, oh=card.h;
@@ -1584,6 +1607,101 @@ function wireCardEvents(el, id){
     selectItem("card", id);
     setTimeout(()=> document.getElementById("pf-title")?.focus(), 30);
   });
+
+  el.addEventListener("mouseenter", ()=>{
+    clearTimeout(fieldsHoverTimer);
+    const card = Store.project.cards[id];
+    if(card) showFieldsPopover(card);
+  });
+  el.addEventListener("mouseleave", ()=>{
+    scheduleHideFieldsPopover();
+  });
+}
+
+/* ---- hover popover: custom fields shown as clickable label/value pairs ---- */
+let fieldsHoverTimer = null;
+
+function ensureFieldsPopover(){
+  let el = document.getElementById("card-fields-popover");
+  if(!el){
+    el = document.createElement("div");
+    el.id = "card-fields-popover";
+    el.className = "card-fields-popover";
+    worldEl().appendChild(el);
+    el.addEventListener("mouseenter", ()=> clearTimeout(fieldsHoverTimer));
+    el.addEventListener("mouseleave", ()=> scheduleHideFieldsPopover());
+  }
+  return el;
+}
+function scheduleHideFieldsPopover(){
+  clearTimeout(fieldsHoverTimer);
+  fieldsHoverTimer = setTimeout(()=>{
+    const el = document.getElementById("card-fields-popover");
+    if(el) el.classList.remove("visible");
+  }, 220);
+}
+function hideFieldsPopoverImmediate(){
+  clearTimeout(fieldsHoverTimer);
+  const el = document.getElementById("card-fields-popover");
+  if(el) el.classList.remove("visible");
+}
+function fieldDisplayValue(f){
+  if(f.type==="checkbox") return f.value ? "Yes" : "No";
+  if(f.type==="image") return f.value ? "[image]" : "—";
+  if(f.type==="file") return (f.value && f.value.name) ? f.value.name : "—";
+  if(f.value===undefined || f.value===null || f.value==="") return "—";
+  return String(f.value);
+}
+function copyableFieldText(f){
+  if(f.type==="checkbox") return f.value ? "Yes" : "No";
+  if(f.type==="file") return (f.value && f.value.name) ? f.value.name : "";
+  if(f.type==="image") return "";
+  return f.value!=null ? String(f.value) : "";
+}
+function showFieldsPopover(card){
+  if(!card.fields || !card.fields.length) return;
+  const el = ensureFieldsPopover();
+  el.innerHTML = `<div class="cfp-title">Custom fields — click to copy</div>` + card.fields.map(f=>`
+    <div class="cfp-row" data-fid="${f.id}">
+      <span class="cfp-label">${escapeHtml(f.label||f.type)}</span>
+      <span class="cfp-value">${escapeHtml(fieldDisplayValue(f))}</span>
+      <svg class="cfp-copy-icon" viewBox="0 0 24 24"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg>
+    </div>`).join("");
+  el.style.left = card.x + "px";
+  el.style.top = (card.y + card.h + 8) + "px";
+  el.style.minWidth = Math.max(card.w, 190) + "px";
+  el.classList.add("visible");
+  el.querySelectorAll(".cfp-row").forEach(row=>{
+    row.onclick = (e)=>{
+      e.stopPropagation();
+      const f = card.fields.find(x=>x.id===row.dataset.fid);
+      if(f) copyFieldValue(f, row);
+    };
+  });
+}
+function copyFieldValue(f, rowEl){
+  const text = copyableFieldText(f);
+  if(!text){ toast("Nothing to copy for this field"); return; }
+  const flash = ()=>{
+    if(!rowEl) return;
+    const valEl = rowEl.querySelector(".cfp-value");
+    const prev = valEl.textContent;
+    rowEl.classList.add("copied");
+    valEl.textContent = "Copied";
+    setTimeout(()=>{ rowEl.classList.remove("copied"); valEl.textContent = prev; }, 900);
+  };
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(text).then(flash).catch(()=>{ fallbackCopy(text); flash(); });
+  } else {
+    fallbackCopy(text); flash();
+  }
+}
+function fallbackCopy(text){
+  const ta = document.createElement("textarea");
+  ta.value = text; ta.style.position = "fixed"; ta.style.opacity = "0";
+  document.body.appendChild(ta); ta.select();
+  try{ document.execCommand("copy"); }catch(e){ /* clipboard unavailable */ }
+  document.body.removeChild(ta);
 }
 
 function handleConnectClick(cardId){
@@ -1610,8 +1728,10 @@ function wireCanvasEvents(){
   wrap.addEventListener("pointerdown",(e)=>{
     if(e.target.closest(".card")) return;
     if(e.target.closest("#conn-svg g")) return;
+    if(e.target.closest("#card-fields-popover")) return;
     if(UI.tool==="connect"){ toggleConnectMode(false); return; }
     clearSelection();
+    hideFieldsPopoverImmediate();
     panning = true; wrap.classList.add("panning");
     beginInteraction();
     sx=e.clientX; sy=e.clientY; ox=UI.viewport.x; oy=UI.viewport.y;
